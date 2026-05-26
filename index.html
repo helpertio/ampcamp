@@ -193,6 +193,13 @@ body { font-family:'Manrope',sans-serif; background:var(--bg); color:var(--text)
   .agenda-slot { display:grid; grid-template-columns:50px minmax(0,1fr); border-top:1px solid rgba(0,0,0,.12); }
   .agenda-time { color:var(--text-dim); font-weight:700; font-size:13px; padding:10px 6px 0 0; text-align:right; }
   .agenda-events { display:grid; gap:8px; padding:8px 0; min-width:0; }
+  .agenda-events.hour-layout { align-items:stretch; }
+  .agenda-col { display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .agenda-col .ev { flex:1 1 auto; }
+  .agenda-col.split-half .ev { min-height:72px; padding:8px 12px; }
+  .agenda-col.split-half .ev .ev-n { font-size:13px; line-height:1.18; }
+  .agenda-col.split-half .ev .ev-s { font-size:11px; line-height:1.2; }
+  .ev-half-time { color:var(--text-dim); font-size:10px; font-weight:800; margin-bottom:1px; font-variant-numeric:tabular-nums; }
   .agenda-grid .ev { position:relative; min-height:0; padding:10px 12px; gap:4px; cursor:pointer; }
   .agenda-grid .ev .ev-n { font-size:14px; line-height:1.25; max-height:none; overflow:visible; }
   .agenda-grid .ev .ev-s { font-size:12px; line-height:1.25; max-height:none; overflow:visible; }
@@ -957,6 +964,28 @@ function escapeEv(ev) {
   return JSON.stringify(ev).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+function formatAgendaTime(absMinutes) {
+  const mins = absMinutes % (24*60);
+  return `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;
+}
+
+function renderAgendaCard(dayKey, ev, idx, isSplitHalf=false, visibleStart=null) {
+  const evId = makeEventId(dayKey, ev, idx);
+  ev.id = evId;
+  ev.dayKey = dayKey;
+  const isSelected = selectedIntentions.has(evId);
+  const lg = locGroup(ev);
+  const cls = [ev.isMeta ? 'meta' : '', ev.backgroundMeta ? 'meta-bg' : '', isSelected ? 'selected' : '', lg ? 'loc-'+lg : ''].filter(Boolean).join(' ');
+  const sub = [];
+  if (ev.host) sub.push(ev.host);
+  if (ev.loc && !ev.isMeta) sub.push(displayLoc(ev.loc));
+  const halfTime = isSplitHalf && visibleStart !== null ? `<div class="ev-half-time">${formatAgendaTime(visibleStart)}</div>` : '';
+  const subH = sub.length ? `<div class="ev-s">${sub.join(' · ')}</div>` : '';
+  const evJ = escapeEv(ev);
+  const intentBtn = !ev.isMeta ? `<button class="intent-btn ${isSelected?'selected':''}" onclick="toggleIntent('${evId}', event)">${isSelected?'✓ Хочу пойти':'Хочу пойти'}</button>` : '';
+  return `<div class="ev ${cls}" ${!ev.isMeta?`data-intent-id="${evId}"`:''} ${!ev.isMeta?`onclick="openModal(this)" data-ev="${evJ}"`:''}>${halfTime}<div class="ev-n">${ev.displayName || ev.name}</div>${subH}${intentBtn}</div>`;
+}
+
 function renderAgenda(dayKey) {
   const day = DATA[dayKey];
   const grid = document.getElementById('calGrid');
@@ -967,37 +996,40 @@ function renderAgenda(dayKey) {
   const startMin = ttm(day.startTime);
   let endMin = ttm(day.endTime);
   if (endMin <= startMin) endMin += 24*60;
-  const byTime = new Map();
+  const byHour = new Map();
   events.forEach(({ev, idx}) => {
     let sm = ttm(ev.start);
     let em = ev.end ? ttm(ev.end) : sm + ev.slots*30;
     if (sm < startMin && sm < 12*60) sm += 24*60;
     if (em <= sm) em += 24*60;
     if (em <= startMin || sm >= endMin) return;
-    const key = Math.max(sm, startMin);
-    if (!byTime.has(key)) byTime.set(key, []);
-    byTime.get(key).push({ev, idx});
+    const visibleStart = Math.max(sm, startMin);
+    const hourKey = Math.floor(visibleStart / 60) * 60;
+    if (!byHour.has(hourKey)) byHour.set(hourKey, []);
+    byHour.get(hourKey).push({ev, idx, visibleStart});
   });
   let html = '';
-  [...byTime.keys()].sort((a,b)=>a-b).forEach(t => {
-    const mins = t % (24*60);
-    const ts = `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;
-    const cards = byTime.get(t).map(({ev, idx}) => {
-      const evId = makeEventId(dayKey, ev, idx);
-      ev.id = evId;
-      ev.dayKey = dayKey;
-      const isSelected = selectedIntentions.has(evId);
-      const lg = locGroup(ev);
-      const cls = [ev.isMeta ? 'meta' : '', ev.backgroundMeta ? 'meta-bg' : '', isSelected ? 'selected' : '', lg ? 'loc-'+lg : ''].filter(Boolean).join(' ');
-      const sub = [];
-      if (ev.host) sub.push(ev.host);
-      if (ev.loc && !ev.isMeta) sub.push(displayLoc(ev.loc));
-      const subH = sub.length ? `<div class="ev-s">${sub.join(' · ')}</div>` : '';
-      const evJ = escapeEv(ev);
-      const intentBtn = !ev.isMeta ? `<button class="intent-btn ${isSelected?'selected':''}" onclick="toggleIntent('${evId}', event)">${isSelected?'✓ Хочу пойти':'Хочу пойти'}</button>` : '';
-      return `<div class="ev ${cls}" ${!ev.isMeta?`data-intent-id="${evId}"`:''} ${!ev.isMeta?`onclick="openModal(this)" data-ev="${evJ}"`:''}><div class="ev-n">${ev.displayName || ev.name}</div>${subH}${intentBtn}</div>`;
+  [...byHour.keys()].sort((a,b)=>a-b).forEach(hour => {
+    const items = byHour.get(hour).sort((a,b) => (a.ev.trackCol || 0) - (b.ev.trackCol || 0) || a.visibleStart - b.visibleStart);
+    const hasHourStart = items.some(item => item.visibleStart % 60 === 0);
+    const labelTime = hasHourStart ? hour : items[0].visibleStart;
+    const byCol = new Map();
+    items.forEach(item => {
+      const key = item.ev.wide ? `wide-${item.idx}` : String(item.ev.trackCol || 0);
+      if (!byCol.has(key)) byCol.set(key, []);
+      byCol.get(key).push(item);
+    });
+    const cols = [...byCol.values()].map(colItems => {
+      const sorted = colItems.sort((a,b) => a.visibleStart - b.visibleStart);
+      const isSplitHalf = sorted.length > 1 && sorted.every(item => {
+        const sm = ttm(item.ev.start);
+        const em = item.ev.end ? ttm(item.ev.end) : sm + item.ev.slots*30;
+        const duration = (em <= sm ? em + 24*60 : em) - sm;
+        return duration <= 30;
+      });
+      return `<div class="agenda-col ${isSplitHalf ? 'split-half' : ''}">${sorted.map(({ev, idx, visibleStart}) => renderAgendaCard(dayKey, ev, idx, isSplitHalf, visibleStart)).join('')}</div>`;
     }).join('');
-    html += `<div class="agenda-slot"><div class="agenda-time">${ts}</div><div class="agenda-events">${cards}</div></div>`;
+    html += `<div class="agenda-slot"><div class="agenda-time">${formatAgendaTime(labelTime)}</div><div class="agenda-events hour-layout">${cols}</div></div>`;
   });
   grid.innerHTML = html;
 }
