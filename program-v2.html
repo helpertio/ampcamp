@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AmpCamp ReUnion 2026 — Программа · крупные карточки</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f3ef;
+  --bg-card: #ffffff;
+  --bg-card-hover: #faf8f5;
+  --text: #3a3632;
+  --text-dim: #8a8580;
+  --text-bright: #1a1714;
+  --accent: #e05a2b;
+  --border: #e2ddd6;
+  --tag-bg: #eee9e2;
+  --tag-text: #6b6560;
+  --row-h: 48px;
+  --time-w: 54px;
+  --meta-row-h: 28px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Manrope',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+.header { text-align:center; padding:36px 24px 24px; position:relative; }
+.header::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:100px; height:2px; background:linear-gradient(90deg,transparent,var(--accent),transparent); }
+.header h1 { font-family:'Playfair Display',serif; font-size:clamp(26px,5vw,42px); font-weight:700; color:var(--text-bright); letter-spacing:-0.02em; margin-bottom:4px; }
+.header .sub { font-size:13px; color:var(--text-dim); font-weight:300; letter-spacing:0.15em; text-transform:uppercase; }
+.header .dates { margin-top:6px; font-size:14px; color:var(--accent); font-weight:500; }
+
+/* Tabs */
+.tabs { display:flex; justify-content:center; gap:4px; padding:16px 12px 14px; position:sticky; top:0; z-index:100; background:var(--bg); flex-wrap:wrap; }
+.tab { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-dim); font-family:'Manrope',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; }
+.tab:hover { border-color:var(--accent); color:var(--text); }
+.tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.tab .td { display:block; font-size:10px; font-weight:300; opacity:.7; margin-top:1px; }
+
+/* Calendar */
+.cal-wrap { max-width:1200px; margin:0 auto; padding:0 12px 60px; overflow-x:auto; }
+.cal-grid { display:grid; position:relative; min-width:600px; }
+.cal-time { font-size:12px; font-weight:600; color:var(--text-dim); text-align:right; padding-right:10px; padding-top:2px; font-variant-numeric:tabular-nums; border-top:1px solid var(--border); }
+.cal-time.hr { border-top-color:#ccc7c0; }
+.cal-time.hf { border-top-color:#eae5df; font-weight:400; font-size:11px; color:#b0a99f; }
+.cal-ln { border-top:1px solid var(--border); }
+.cal-ln.hr { border-top-color:#ccc7c0; }
+.cal-ln.hf { border-top-color:#eae5df; }
+
+/* Events */
+.ev { background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:5px 9px; cursor:pointer; transition:all .15s; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.05); display:flex; flex-direction:column; gap:1px; margin:1px 2px; z-index:2; }
+.ev:hover { box-shadow:0 3px 10px rgba(0,0,0,.12); transform:translateY(-1px); z-index:10; border-color:rgba(0,0,0,.15); }
+.ev.meta { background:rgba(0,0,0,.02); border:1px dashed var(--border); cursor:default; box-shadow:none; justify-content:center; align-items:center; }
+.ev.meta:hover { transform:none; box-shadow:none; border-color:var(--border); }
+.ev.meta .ev-n { color:var(--text-dim); font-weight:400; font-size:12px; text-align:center; }
+.ev-n { font-size:13px; font-weight:500; color:var(--text-bright); line-height:1.25; }
+.ev-s { font-size:11px; color:var(--text-dim); line-height:1.3; }
+.ev-t { display:flex; flex-wrap:wrap; gap:3px; margin-top:2px; }
+.tag { font-size:10px; color:var(--tag-text); background:var(--tag-bg); padding:1px 5px; border-radius:3px; white-space:nowrap; }
+
+/* All-days view */
+.all-days { max-width:1200px; margin:0 auto; padding:0 12px 60px; }
+.all-day-section { margin-bottom:32px; }
+.all-day-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--text-bright); margin-bottom:8px; padding-bottom:6px; border-bottom:2px solid var(--accent); display:inline-block; }
+.all-day-title span { font-weight:400; color:var(--text-dim); font-family:'Manrope',sans-serif; font-size:14px; margin-left:8px; }
+
+/* Locations panel */
+.loc-panel { max-width:900px; margin:0 auto; padding:0 16px 60px; display:none; }
+.loc-panel.show { display:block; }
+.loc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
+.loc-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; cursor:pointer; transition:all .2s; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+.loc-card:hover { box-shadow:0 3px 8px rgba(0,0,0,.1); transform:translateY(-1px); }
+.loc-card.open { grid-column:1/-1; }
+.loc-card h3 { font-size:15px; font-weight:600; color:var(--text-bright); margin-bottom:4px; }
+.loc-card p { font-size:13px; color:var(--text-dim); line-height:1.5; margin-bottom:8px; }
+.loc-card .photos { display:flex; gap:8px; flex-wrap:wrap; }
+.loc-card .photo-placeholder { width:120px; height:80px; background:var(--tag-bg); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-dim); }
+.loc-detail { display:none; margin-top:10px; }
+.loc-card.open .loc-detail { display:block; }
+
+
+/* Intentions panel */
+.intent-panel { max-width:980px; margin:18px auto 6px; padding:0 16px; }
+.intent-card { background:rgba(255,255,255,.78); border:1px solid var(--border); border-radius:18px; padding:16px; box-shadow:0 8px 26px rgba(58,54,50,.07); backdrop-filter:blur(10px); display:grid; grid-template-columns:1.1fr .9fr; gap:16px; align-items:center; }
+.intent-kicker { font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--accent); font-weight:700; margin-bottom:6px; }
+.intent-title { font-size:18px; font-weight:700; color:var(--text-bright); margin-bottom:4px; }
+.intent-note { font-size:13px; line-height:1.45; color:var(--text-dim); max-width:560px; }
+.intent-controls { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; }
+.intent-select { width:100%; min-height:42px; border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--text-bright); padding:0 12px; font-family:'Manrope',sans-serif; font-size:14px; outline:none; }
+.intent-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(224,90,43,.13); }
+.intent-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; grid-column:1/-1; }
+.intent-action { border:1px solid var(--border); background:#fff; color:var(--text); border-radius:10px; padding:9px 12px; font-family:'Manrope',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; }
+.intent-action.compact-copy { display:inline-flex; align-items:center; gap:7px; padding:8px 10px; max-width:240px; white-space:nowrap; }
+.copy-icon { position:relative; width:14px; height:14px; flex:0 0 14px; display:inline-block; }
+.copy-icon::before, .copy-icon::after { content:''; position:absolute; width:10px; height:10px; border:1.6px solid currentColor; border-radius:2px; background:#fff; }
+.copy-icon::before { left:1px; top:3px; opacity:.65; }
+.copy-icon::after { left:4px; top:0; }
+.intent-action:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
+.intent-action.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+.intent-action.primary:hover { filter:brightness(.96); color:#fff; }
+.intent-action:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+.intent-status { font-size:12px; color:var(--text-dim); text-align:right; min-height:18px; grid-column:1/-1; }
+.intent-status.ok { color:#2f7d50; }
+.intent-status.warn { color:var(--accent); }
+.intent-pill { display:inline-flex; align-items:center; gap:6px; background:rgba(224,90,43,.09); color:var(--accent); padding:5px 9px; border-radius:999px; font-size:12px; font-weight:700; margin-top:8px; }
+.ev.selected { border-color:rgba(224,90,43,.75); background:#fff7f1; box-shadow:0 5px 16px rgba(224,90,43,.16); }
+.ev.selected::before { content:'✓'; position:absolute; top:5px; right:7px; width:18px; height:18px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; }
+.ev { position:relative; }
+.intent-btn { margin-top:auto; align-self:flex-start; border:1px solid var(--border); background:#fff; color:var(--text-dim); border-radius:999px; padding:3px 8px; font-family:'Manrope',sans-serif; font-size:10px; font-weight:700; cursor:pointer; transition:all .15s; }
+.intent-btn:hover { border-color:var(--accent); color:var(--accent); }
+.intent-btn.selected { background:var(--accent); border-color:var(--accent); color:#fff; }
+.modal-intent { margin-top:16px; border-top:1px solid var(--border); padding-top:14px; display:flex; gap:8px; align-items:center; justify-content:space-between; }
+.modal-intent button { border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:12px; padding:10px 14px; font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
+.modal-intent button.off { background:#fff; color:var(--accent); }
+.modal-intent span { color:var(--text-dim); font-size:12px; line-height:1.35; }
+@media(max-width:760px) {
+  .intent-card { grid-template-columns:1fr; gap:12px; }
+  .intent-controls { grid-template-columns:1fr; }
+  .intent-actions { justify-content:flex-start; }
+  .intent-status { text-align:left; }
+  .intent-action.compact-copy { max-width:100%; }
+}
+
+
+
+/* Main location colors */
+.intent-toggle { display:flex; align-items:center; justify-content:center; margin:0 0 8px auto; border:1px solid var(--border); background:#fff; color:var(--text-dim); border-radius:999px; padding:6px 11px; font-family:'Manrope',sans-serif; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s; }
+.intent-toggle:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
+.intent-panel.collapsed { margin-top:10px; margin-bottom:0; }
+.intent-panel.collapsed .intent-card { display:none; }
+.intent-panel.collapsed .intent-toggle { margin-bottom:0; }
+.loc-legend { max-width:1200px; margin:0 auto 12px; padding:0 14px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.loc-legend.hidden { display:none; }
+.loc-chip { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:999px; background:#fff; padding:5px 9px; font-size:12px; color:var(--text-dim); }
+.loc-chip.clickable { cursor:pointer; }
+.loc-chip.clickable:hover { border-color:var(--accent); color:var(--accent); }
+.loc-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+:root { --loc-lecture:#d9b26f; --loc-club:#c85b92; --loc-royal:#8e7cc3; --loc-field:#8fb76d; --loc-pool:#72b7d8; }
+.loc-dot.lecture { background:#d9b26f; }
+.loc-dot.club { background:#c85b92; }
+.loc-dot.royal { background:#8e7cc3; }
+.loc-dot.field { background:#8fb76d; }
+.loc-dot.pool { background:#72b7d8; }
+.loc-dot.other { background:#fff; border:1px solid #bbb5ad; }
+.ev.loc-lecture { border-left:5px solid #d9b26f; background:linear-gradient(90deg,#f7ead0 0,#fff 52px,#fff 100%); }
+.ev.loc-club { border-left:5px solid #c85b92; background:linear-gradient(90deg,#f4dce9 0,#fff 52px,#fff 100%); }
+.ev.loc-royal { border-left:5px solid #8e7cc3; background:linear-gradient(90deg,#e8e2f6 0,#fff 52px,#fff 100%); }
+.ev.loc-field { border-left:5px solid #8fb76d; background:linear-gradient(90deg,#e6f0dc 0,#fff 52px,#fff 100%); }
+.ev.loc-pool { border-left:5px solid #72b7d8; background:linear-gradient(90deg,#dff0f8 0,#fff 52px,#fff 100%); }
+.ev.meta.meta-bg { z-index:1; opacity:.68; }
+.cal-grid:not(.agenda-grid) { --row-h:56px; }
+.ev.compact { padding:6px 8px; gap:2px; justify-content:flex-start; }
+.ev.compact .ev-n { font-size:12px; line-height:1.16; max-height:2.32em; overflow:hidden; }
+.ev.compact .ev-s { display:block; font-size:10px; line-height:1.16; max-height:1.16em; overflow:hidden; }
+.ev.compact .ev-t { display:none; }
+.cal-grid:not(.agenda-grid) .ev:not(.meta) { padding-bottom:34px; }
+.cal-grid:not(.agenda-grid) .ev.selected::before { display:none; }
+.cal-grid:not(.agenda-grid) .ev:not(.meta) .intent-btn {
+  position:absolute;
+  right:8px;
+  bottom:7px;
+  height:21px;
+  min-height:21px;
+  margin:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+.cal-grid:not(.agenda-grid) .ev.micro-intent { padding:5px 46px 5px 8px; }
+.cal-grid:not(.agenda-grid) .ev.micro-intent .ev-n { font-size:11.5px; line-height:1.12; max-height:2.24em; }
+.cal-grid:not(.agenda-grid) .ev.micro-intent .ev-s { font-size:9.5px; line-height:1.1; max-height:1.1em; }
+.cal-grid:not(.agenda-grid) .ev.micro-intent .intent-btn {
+  width:46px;
+  min-width:46px;
+  height:21px;
+  padding:0;
+  font-size:10px;
+}
+.cal-grid:not(.agenda-grid) .ev.micro-intent .intent-btn.selected::before {
+  content:'✓ ';
+  font-size:10px;
+}
+.ev .ev-s { display:block; max-height:2.6em; overflow:hidden; }
+.ev .ev-t { overflow:hidden; }
+.all-days.horizontal { max-width:none; overflow-x:auto; display:flex; align-items:flex-start; gap:18px; padding:0 18px 60px; }
+.all-days.horizontal .all-day-section { flex:0 0 min(1120px, 92vw); margin-bottom:0; }
+.loc-card.primary-loc { border-left:7px solid var(--loc-color,#ddd); background:linear-gradient(90deg,var(--loc-tint,#fff),#fff 35%); }
+.loc-card.primary-loc h3::after { content:'основная'; margin-left:10px; color:var(--text-dim); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; }
+@media(max-width:700px) and (orientation:portrait) {
+  .cal-wrap { overflow-x:visible; padding:0 10px 60px; }
+  .cal-grid.agenda-grid { display:block; min-width:0; }
+  .agenda-slot { display:grid; grid-template-columns:50px minmax(0,1fr); border-top:1px solid rgba(0,0,0,.12); }
+  .agenda-time { color:var(--text-dim); font-weight:700; font-size:13px; padding:10px 6px 0 0; text-align:right; }
+  .agenda-events { display:grid; gap:8px; padding:8px 0; min-width:0; }
+  .agenda-grid .ev { position:relative; min-height:0; padding:10px 12px; gap:4px; cursor:pointer; }
+  .agenda-grid .ev .ev-n { font-size:14px; line-height:1.25; max-height:none; overflow:visible; }
+  .agenda-grid .ev .ev-s { font-size:12px; line-height:1.25; max-height:none; overflow:visible; }
+  .agenda-grid .ev .ev-t { display:none; }
+  .agenda-grid .intent-btn { margin-top:3px; font-size:10px; }
+  .agenda-grid .ev.meta { align-items:center; justify-content:center; min-height:32px; padding:8px 12px; cursor:default; }
+  .agenda-grid .ev.meta .ev-n { font-size:12px; color:var(--text-dim); text-align:center; }
+}
+
+/* Modal */
+.modal-ov { display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); backdrop-filter:blur(8px); z-index:1000; justify-content:center; align-items:center; padding:24px; }
+.modal-ov.open { display:flex; }
+.modal { background:#fff; border:1px solid var(--border); border-radius:16px; max-width:500px; width:100%; max-height:85vh; overflow-y:auto; padding:24px; position:relative; animation:mIn .2s ease-out; box-shadow:0 12px 40px rgba(0,0,0,.15); }
+@keyframes mIn { from{opacity:0;transform:translateY(12px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+.modal-x { position:absolute; top:14px; right:14px; width:30px; height:30px; border:none; background:rgba(0,0,0,.05); border-radius:8px; color:var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.modal-x:hover { background:rgba(0,0,0,.1); color:var(--text); }
+.modal-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+.modal-tags .tag { font-size:12px; padding:3px 8px; }
+.modal h2 { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--text-bright); margin-bottom:14px; line-height:1.3; padding-right:36px; }
+.modal-g { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
+.modal-i { background:rgba(0,0,0,.025); border-radius:8px; padding:8px 10px; }
+.modal-i .l { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; }
+.modal-i .v { font-size:13px; color:var(--text); font-weight:500; }
+.modal-i.f { grid-column:1/-1; }
+.modal-d { font-size:14px; line-height:1.6; color:var(--text); border-top:1px solid var(--border); padding-top:14px; }
+.modal-d.empty { color:var(--text-dim); font-style:italic; }
+
+@media(max-width:640px) {
+  .tabs { gap:3px; padding:12px 6px 10px; }
+  .tab { padding:6px 10px; font-size:12px; }
+  .tab .td { display:none; }
+  .modal { padding:18px; }
+  .modal-g { grid-template-columns:1fr; }
+  :root { --row-h:42px; }
+  .loc-grid { grid-template-columns:1fr; }
+}
+
+
+/* Large-card production experiment */
+:root {
+  --row-h: 128px;
+}
+.cal-wrap {
+  max-width: 1280px;
+  overflow-x: visible;
+}
+.cal-grid:not(.agenda-grid) {
+  --row-h: 128px;
+}
+.cal-grid:not(.agenda-grid) .ev:not(.meta) {
+  border-radius: 14px;
+  padding: 13px 16px 46px;
+  gap: 7px;
+  box-shadow: 0 7px 24px rgba(58,54,50,.08);
+}
+.cal-grid:not(.agenda-grid) .ev:not(.meta):hover {
+  box-shadow: 0 12px 30px rgba(58,54,50,.15);
+}
+.cal-grid:not(.agenda-grid) .ev-n,
+.cal-grid:not(.agenda-grid) .ev.compact .ev-n,
+.cal-grid:not(.agenda-grid) .ev.micro-intent .ev-n {
+  font-size: 18px;
+  line-height: 1.16;
+  font-weight: 800;
+  max-height: 2.4em;
+  overflow: hidden;
+}
+.cal-grid:not(.agenda-grid) .ev-s,
+.cal-grid:not(.agenda-grid) .ev.compact .ev-s,
+.cal-grid:not(.agenda-grid) .ev.micro-intent .ev-s {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  max-height: 2.7em;
+  overflow: hidden;
+}
+.cal-grid:not(.agenda-grid) .ev-d {
+  color: #514b45;
+  font-size: 13px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cal-grid:not(.agenda-grid) .ev-d.empty {
+  display: none;
+}
+.cal-grid:not(.agenda-grid) .ev-d.more::after {
+  content: "  Читать полностью";
+  color: var(--accent);
+  font-weight: 700;
+}
+.ev-more {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  margin-top: -2px;
+  width: fit-content;
+  cursor: pointer;
+}
+.ev-more:hover {
+  text-decoration: underline;
+}
+.ev.expanded .ev-d {
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+  max-height: none;
+  overflow: visible;
+}
+.cal-grid:not(.agenda-grid) .ev.compact .ev-t,
+.cal-grid:not(.agenda-grid) .ev.micro-intent .ev-t {
+  display: flex;
+}
+.cal-grid:not(.agenda-grid) .ev.micro-intent {
+  padding: 13px 58px 46px 16px;
+}
+.cal-grid:not(.agenda-grid) .ev.micro-intent .intent-btn {
+  width: auto;
+  min-width: 58px;
+  padding: 0 10px;
+}
+.cal-grid:not(.agenda-grid) .tag {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+.agenda-grid .ev {
+  min-height: 190px;
+}
+.agenda-grid {
+  display: block;
+  min-width: 0;
+}
+.agenda-slot {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  border-top: 1px solid rgba(0,0,0,.12);
+}
+.agenda-time {
+  color: var(--text-dim);
+  font-weight: 800;
+  font-size: 15px;
+  padding: 18px 10px 0 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.agenda-events {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 12px;
+  padding: 10px 0 12px;
+  min-width: 0;
+}
+.agenda-grid .ev:not(.meta) {
+  border-radius: 14px;
+  padding: 16px 18px 48px;
+  gap: 8px;
+}
+.agenda-grid .ev .ev-n {
+  font-size: 20px;
+  line-height: 1.16;
+  font-weight: 800;
+}
+.agenda-grid .ev .ev-s {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.agenda-grid .ev .ev-t {
+  display: flex;
+}
+.agenda-grid .ev .ev-d {
+  color: #514b45;
+  font-size: 13px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.agenda-events.hour-layout {
+  align-items: stretch;
+}
+.agenda-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.agenda-col .ev {
+  flex: 1 1 auto;
+  min-height: 190px;
+}
+.agenda-col.split-half {
+  gap: 8px;
+}
+.agenda-col.split-half .ev {
+  min-height: 92px;
+  padding: 12px 14px 36px;
+}
+.agenda-col.split-half .ev .ev-n {
+  font-size: 16px;
+  line-height: 1.14;
+}
+.agenda-col.split-half .ev .ev-s {
+  font-size: 12px;
+}
+.agenda-col.split-half .ev .ev-d,
+.agenda-col.split-half .ev .ev-t {
+  display: none;
+}
+.ev-half-time {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 850;
+  margin-bottom: 2px;
+  font-variant-numeric: tabular-nums;
+}
+@media(max-width:700px) and (orientation:portrait) {
+  .agenda-slot {
+    grid-template-columns: 52px minmax(0,1fr);
+  }
+  .agenda-events {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .agenda-grid .ev {
+    min-height: 150px;
+  }
+  .agenda-grid .ev .ev-n {
+    font-size: 16px;
+  }
+  .agenda-col .ev {
+    min-height: 150px;
+  }
+  .agenda-col.split-half .ev {
+    min-height: 86px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>AmpCamp ReUnion</h1>
+  <div class="sub">Программа мероприятия</div>
+  <div class="dates">28–31 мая 2026 · Квишхети, Грузия</div>
+</div>
+
+<div class="intent-panel" id="intentPanel">
+  <button class="intent-toggle" id="intentToggle" type="button" onclick="toggleIntentPanel()"></button>
+  <div class="intent-card">
+    <div>
+      <div class="intent-kicker">Предварительный выбор</div>
+      <div class="intent-title">Отметь форматы, на которые хочешь прийти</div>
+      <div class="intent-note">Это не запись и не бронь места. Мы собираем намерения, чтобы понять спрос; если желающих будет больше лимита, решим через лотерею или правила на месте.</div>
+      <div class="intent-pill" id="selectedPill">Выбрано: 0</div>
+    </div>
+    <div class="intent-controls">
+      <select class="intent-select" id="participantSelect" onchange="onParticipantChange()">
+        <option value="">Выбери себя</option>
+      </select>
+      <button class="intent-action" onclick="clearIntentions()">Сбросить</button>
+      <div class="intent-actions">
+        <button class="intent-action compact-copy" onclick="copyIntentions()" title="Скопировать себе в буфер обмена"><span class="copy-icon" aria-hidden="true"></span><span>Скопировать себе</span></button>
+        <button class="intent-action primary" onclick="saveIntentions()">Сохранить выбор</button>
+      </div>
+      <div class="intent-status" id="intentStatus">Сначала выбери участника, потом кликай “хочу пойти” на карточках.</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="loc-legend hidden" id="locLegend"></div>
+<div class="cal-wrap" id="calWrap"><div class="cal-grid" id="calGrid"></div></div>
+<div class="all-days" id="allDays"></div>
+<div class="loc-panel" id="locPanel"></div>
+
+<div class="modal-ov" id="mo">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const DATA = {"thursday":{"events":[{"name":"Расселение","sourceName":"Расселение","start":"15:00","end":"16:00","slots":2,"startRow":16,"trackCol":0,"colSpan":5,"wide":true,"isMeta":false,"color":"FFCCCCCC"},{"name":"ОБЕД","sourceName":"ОБЕД","start":"16:00","end":"17:00","slots":2,"startRow":18,"trackCol":0,"colSpan":5,"wide":true,"isMeta":true,"color":"FF93C47D","loc":"Рестик второй этаж"},{"name":"Экскурсия по базе с гидом","sourceName":"Свободное время и экскурсии по базе 17:00, 17:30, 18:00","start":"17:00","end":"18:30","slots":3,"startRow":20,"trackCol":0,"colSpan":5,"wide":true,"isMeta":false,"color":"FFCCCCCC","displayName":"Экскурсия по базе с гидом"},{"name":"ОТКРЫТИЕ","sourceName":"ОТКРЫТИЕ","start":"18:30","end":"20:00","slots":3,"startRow":23,"trackCol":0,"colSpan":5,"wide":true,"isMeta":false,"color":"FFFFD966","loc":"Большая поляна","locGroup":"field","displayName":"Открытие"},{"name":"УЖИН","sourceName":"УЖИН","start":"20:00","end":"21:30","slots":3,"startRow":26,"trackCol":0,"colSpan":5,"wide":true,"isMeta":true,"color":"FF93C47D","loc":"Рестик второй этаж"},{"name":"Прожектор (Лиза Киселева)","sourceName":"Прожектор (Лиза Киселева)","start":"21:30","end":"23:00","slots":3,"startRow":29,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Лиза Киселева","excelHost":"Лиза Киселева","color":"FF8E7CC3","loc":"Королевская","locGroup":"royal"},{"name":"Мидраш-кафе // 1,5 часа","sourceName":"Мидраш-Кафе (Сонч, Лена Волжина)","start":"21:30","end":"23:00","slots":3,"startRow":29,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Сонч Видревич, Лена Волжина","excelHost":"Сонч Видревич, Лена Волжина","color":"FFE6B8AF","loc":"Лекторий","notionName":"Мидраш-кафе // 1,5 часа","desc":"Мидраш-кафе: читаем короткие тексты и неистово их обсуждаем Мидраш-кафе — это практика медленного чтения. Процесс строится на работе в группах за тематическими столами.(Если вы были на этом же формате на прошлом кемпе: вас ждут ждут другие тексты)","min":"9","max":"30","locGroup":"lecture","displayName":"Мидраш-кафе"},{"name":"Показ короткометражек","sourceName":"Короткометражки (Аня Лу)","start":"21:30","end":"23:00","slots":3,"startRow":29,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Аня Лукьяненко","excelHost":"Аня Лукьяненко","color":"FFD9D9D9","loc":"Обнимательный дуплекс","notionName":"Показ короткометражек","desc":"Аня Лу: Я хочу сделать просмотр короткометражек, выбрать самой классные, небанальные, красивые короткие метры, вместе посмотреть и обсудить.","min":"5","max":"15","displayName":"Показ короткометражек"},{"name":"Диванчик “Life expectancy of a billionaire in different countries: does money buy longevity?”","sourceName":"Миллиарды не помогут (Юренков)","start":"21:30","end":"23:00","slots":3,"startRow":29,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Вася Юренков","excelHost":"Вася Юренков","color":"FFBE18BE","loc":"Клуб","notionName":"Диванчик “Life expectancy of a billionaire in different countries: does money buy longevity?”","desc":"Диванчик","min":"2","max":"15","locGroup":"club","displayName":"Миллиарды не спасут, диванчик"},{"name":"костерник 1 вечер","sourceName":"костерник + маршмеллоу и сосики (Серёжа и Денис)","start":"21:30","end":"00:30","slots":6,"startRow":29,"trackCol":4,"colSpan":1,"wide":false,"isMeta":false,"host":"Серёжа Антопольский, Денис Волк","excelHost":"Серёжа Антопольский, Денис Волк","color":"FFFF9900","loc":"Костёр","notionName":"костерник 1 вечер","desc":"Костёрник «встреча»Мы давно не виделись и хотим мягко отметить это песнями у костра. Вайб спокойствия, созерцания и лирики задумывается как основной. Музыка, которую, в том числе, накидали вы - призвана стать камертоном для настройки на кемп.","locGroup":"field","min":"2","max":"30","displayName":"Костёрник: маршмеллоу и сосиски"},{"name":"Радиопьеса = бредогенераторошная (Кузнецова)","sourceName":"Радиопьеса = бредогенераторошная (Кузнецова)","start":"23:00","end":"00:30","slots":3,"startRow":32,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Алиса Кузнецова","excelHost":"Алиса Кузнецова","color":"FF8E7CC3","loc":"Королевская","locGroup":"royal","displayName":"Радиопьеса-бредогенераторная"},{"name":"Диванчик на свободную тему","sourceName":"Диванчик на свободную тему","start":"23:00","end":"00:00","slots":2,"startRow":32,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"color":"FFE6B8AF","loc":"Лекторий","locGroup":"lecture","displayName":"Диванчик на свободную тему"},{"name":"прослушивание музыки","sourceName":"Прослушивание музыки (Гриша Аркадьев)","start":"23:00","end":"00:00","slots":2,"startRow":32,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Гриша Аркадьев","excelHost":"Гриша Аркадьев","color":"FFD9D9D9","loc":"Дуплекс 1: обнимательная","notionName":"прослушивание музыки","displayName":"Прослушивание музыки"},{"name":"Кемп шеринг (чек-аут дня) (Никита Соловьев)","sourceName":"Кемп шеринг (чек-аут дня) (Никита Соловьев)","start":"23:00","end":"00:00","slots":2,"startRow":32,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Никита Соловьев","excelHost":"Никита Соловьев","color":"FFBE18BE","loc":"Клуб","locGroup":"club"},{"name":"Вечернее шоу в 00:00 (Яна и Артемий)","sourceName":"Вечернее шоу в 00:00 (Яна и Артемий)","start":"00:00","end":"00:30","slots":1,"startRow":34,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Яна Макарова, Артемий Устименко","excelHost":"Яна Макарова, Артемий Устименко","displayName":"Вечернее шоу в 00:00"}],"label":"Четверг","date":"28 мая","startTime":"15:00","endTime":"00:30"},"friday":{"events":[{"name":"Зарядка в субботу","sourceName":"зарядка (Лесин)","start":"08:00","end":"09:00","slots":2,"startRow":2,"trackCol":0,"colSpan":2,"wide":false,"isMeta":false,"host":"Валера Лесин","excelHost":"Валера Лесин","color":"FFC9DAF8","loc":"Бассейн","notionName":"Зарядка в субботу","locGroup":"pool","displayName":"Зарядка"},{"name":"Утреннее шоу (Яна)","sourceName":"Утреннее шоу (Яна)","start":"08:00","end":"08:30","slots":1,"startRow":2,"trackCol":2,"colSpan":2,"wide":false,"isMeta":false,"host":"Яна Макарова","excelHost":"Яна Макарова","color":"FFC9DAF8","loc":"Бассейн","locGroup":"pool"},{"name":"ЗАВТРАК с распределнием по столам","sourceName":"ЗАВТРАК с распределнием по столам","start":"09:00","end":"10:00","slots":2,"startRow":4,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true,"color":"FF93C47D","loc":"Рестик второй этаж"},{"name":"Раскрываем карты","sourceName":"Карточный домик (Тихонов)","start":"10:00","end":"11:00","slots":2,"startRow":6,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Рома Тихонов","excelHost":"Рома Тихонов","color":"FFA2C4C9","loc":"Lobby отеля (диванчики у ресепшна)","notionName":"Раскрываем карты","desc":"Это разговорный формат, где карты решают всё. Они определяют с кем вы будете общаться и задают контекст обсуждения в группах.","displayName":"Раскрываем карты"},{"name":"Доклад “Гравитационное уравнение торговли” // 45 минут","sourceName":"Гравитационное уравнение, доклад (Юренков)","start":"10:00","end":"11:00","slots":2,"startRow":6,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Вася Юренков","excelHost":"Вася Юренков","color":"FFE6B8AF","loc":"Лекторий","notionName":"Доклад “Гравитационное уравнение торговли” // 45 минут","desc":"Лекция в 45-минутный слот про мировую экономику и гравитационное уравнение торговли","locGroup":"lecture","min":"1","max":"100","displayName":"Доклад: гравитационное уравнение торговли"},{"name":"Танцевальная импровизация (Виденеева)","sourceName":"Танцевальная импровизация (Виденеева)","start":"10:00","end":"11:00","slots":2,"startRow":6,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Настя Виденеева","excelHost":"Настя Виденеева","color":"FFBE18BE","loc":"Клуб","locGroup":"club","displayName":"Танцевальная импровизация"},{"name":"Направляемое обсуждение от Андрея Бреслава про психотерапию","sourceName":"А.Бреслав-разговор про психотерапию (55 м)","start":"10:00","end":"11:00","slots":2,"startRow":6,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Андрей Бреслав","excelHost":"Андрей Бреслав","color":"FF8E7CC3","loc":"Королевская","notionName":"Направляемое обсуждение от Андрея Бреслава про психотерапию","desc":"Доклад + направляемое обсуждение о том, как кто делает свою психотерапию лучше","min":"5","max":"30","locGroup":"royal","displayName":"Разговор про психотерапию"},{"name":"Check Your Privilige (Швец)","sourceName":"Check Your Privilige (Швец)","start":"11:00","end":"12:00","slots":2,"startRow":8,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Лена Швец","excelHost":"Лена Швец","color":"FFFFD966","loc":"Большая поляна","locGroup":"field"},{"name":"Илья и Петров, доклад (Платонова)","sourceName":"Илья и Петров, доклад (Платонова)","start":"11:00","end":"11:30","slots":1,"startRow":8,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Даша Платонова","excelHost":"Даша Платонова","color":"FFE6B8AF","loc":"Лекторий","locGroup":"lecture"},{"name":"Крав-мага","sourceName":"Крав-мага (Лесин)","start":"11:00","end":"12:00","slots":2,"startRow":8,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Валера Лесин","excelHost":"Валера Лесин","color":"FFBE18BE","loc":"Клуб","notionName":"Крав-мага","locGroup":"club","displayName":"Крав-мага"},{"name":"МК и дегустация кофе","sourceName":"Дегустация кофе (Ира Уткина, Таня Тихоновская)/урезать до часа","start":"11:00","end":"12:30","slots":3,"startRow":8,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Ира Уткина, Таня Тихоновская","excelHost":"Ира Уткина, Таня Тихоновская","color":"FFD9EAD3","loc":"Рестик первый этаж","notionName":"МК и дегустация кофе","desc":"Абсолютно непрофессиональный командный coffee cupping: будем нюхать разные зерна, заваривать в аэропрессе, пробовать, потом угадывать, что хотели сказать авторы дескрипторов. В свободное между раундами время — викторина! Команда, справившаяся с заданиями лучше всех, получит приз :) Кофейный опыт необязателен, нюх трюфельной свиньи — бонус. У нас будет лимит в 25 человек. Но если вам вдруг не хватит места — весь неиспользованный кофе и оборудование для заварки будут доступны 24/7! Я/мы ваши трюфельные свиньи 💗","min":"5","max":"25","displayName":"Мастер-класс и дегустация кофе"},{"name":"Флавий, доклад (Мазин)","sourceName":"Флавий, доклад (Мазин)","start":"11:30","end":"12:00","slots":1,"startRow":9,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Максим Мазин","excelHost":"Максим Мазин","color":"FFE6B8AF","loc":"Лекторий","locGroup":"lecture"},{"name":"кофебрейк + портретные фото","sourceName":"кофебрейк + портретные фото","start":"12:00","end":"12:30","slots":1,"startRow":10,"trackCol":0,"colSpan":3,"wide":false,"isMeta":true},{"name":"Турнир по шляпе","sourceName":"Турнир по шляпе (Лиза)","start":"12:30","end":"13:30","slots":2,"startRow":11,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Лиза Киселева","excelHost":"Лиза Киселева","color":"FFA2C4C9","loc":"Lobby отеля (диванчики у ресепшна)","notionName":"Турнир по шляпе","displayName":"Турнир по «Шляпе»"},{"name":"Доклад “Венчурные фонды” // 45 минут","sourceName":"Венчурные фонды, доклад (Костина)","start":"12:30","end":"13:30","slots":2,"startRow":11,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Карина Костина","excelHost":"Карина Костина","color":"FFE6B8AF","loc":"Лекторий","notionName":"Доклад “Венчурные фонды” // 45 минут","desc":"Мифы и реальность венчура Как стать единорогом, не потерять долю, не сойти с ума и не перепутать оценку компании с деньгами на счете?Разберем венчур простым языком: кто дает деньги, кто реально зарабатывает, почему все смотрят на США и почему одна гениальная идея почти никогда не решает. Кейсы, интерактив и немного венчурной арифметики.","locGroup":"lecture","min":"1","max":"100","displayName":"Доклад: венчурные фонды"},{"name":"Watsu","sourceName":"Watsu (Кайданов)","start":"12:30","end":"13:30","slots":2,"startRow":11,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Никита Кайданов","excelHost":"Никита Кайданов","color":"FFC9DAF8","loc":"Бассейн","notionName":"Watsu","locGroup":"pool","max":"30","displayName":"Watsu"},{"name":"чтение по ролям","sourceName":"чтение по ролям (Лесин)","start":"12:30","end":"13:30","slots":2,"startRow":11,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Валера Лесин","excelHost":"Валера Лесин","color":"FFD9EAD3","loc":"Рестик первый этаж","notionName":"чтение по ролям","desc":"Эй, бояре и народ,К нам «Федот-Стрелец» идёт!Будут шутки, будет смех,Представление — для всех!Кто царя сыграет грозно,Кто Федота — виртуозно,Кто царевну — не вопрос,Лишь бы выдержал курьёз!","min":"4","max":"20","displayName":"Чтение по ролям"},{"name":"Диалоги (Савчук)","sourceName":"Диалоги (Савчук)","start":"13:30","end":"14:30","slots":2,"startRow":13,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Сергей Савчук","excelHost":"Сергей Савчук","color":"FF8E7CC3","loc":"Королевская","locGroup":"royal","displayName":"Диалоги"},{"name":"Как делают фильмы в России, доклад (Пушкина)","sourceName":"Как делают фильмы в России, доклад (Пушкина)","start":"13:30","end":"14:00","slots":1,"startRow":13,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Арина Пушкина","excelHost":"Арина Пушкина","color":"FFE6B8AF","loc":"Лекторий","locGroup":"lecture"},{"name":"Water dance","sourceName":"Water dance (Кайданов)","start":"13:30","end":"14:30","slots":2,"startRow":13,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Никита Кайданов","excelHost":"Никита Кайданов","color":"FFC9DAF8","loc":"Бассейн","notionName":"Water dance","locGroup":"pool","max":"30","displayName":"Water Dance"},{"name":"Тату-Арт-Терапия (Гриша Аркадьев)","sourceName":"Тату-Арт-Терапия (Гриша Аркадьев)","start":"13:30","end":"14:30","slots":2,"startRow":13,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Гриша Аркадьев","excelHost":"Гриша Аркадьев","color":"FFD9EAD3","loc":"Рестик первый этаж"},{"name":"Доклад “Системы продуктивности” // 30 минут","sourceName":"Система продуктивности, доклад (Лиознов)","start":"14:00","end":"14:30","slots":1,"startRow":14,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Антон Лиознов","excelHost":"Антон Лиознов","color":"FFE6B8AF","loc":"Лекторий","notionName":"Доклад “Системы продуктивности” // 30 минут","desc":"Три столпа продуктивности Это лекция для тех, кто пытался, и у него не получилось. Расскажу вам причины, из-за которых попытки стать продуктивнее проваливаются и про 3 основания любой методике. А на закуску поговорим с чего начать подход, который сможет увенчаться успехом","locGroup":"lecture","min":"1","max":"100","displayName":"Доклад: системы продуктивности"},{"name":"ОБЕД с распределением по столам","sourceName":"ОБЕД с распределением по столам","start":"14:30","end":"16:00","slots":3,"startRow":15,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true,"color":"FF93C47D","loc":"Рестик второй этаж"},{"name":"Кринж-сессия","sourceName":"Кринж-исповедальня (Яна и Лера)","start":"16:00","end":"17:30","slots":3,"startRow":18,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Яна Макарова, Лера Бараева","excelHost":"Яна Макарова, Лера Бараева","color":"FFBE18BE","loc":"Клуб","notionName":"Кринж-сессия","desc":"Кринж-сессия про странные, провальные или смешные опыты в отношениях, свиданиях и сексе. Приходите поделиться кринжем, побыть-пожить в нем, покорежиться, покукожиться, принять другого в кринже и кринж в себе, чтобы в конце концов стать чуточку ближе друг к другу.","min":"10","max":"25","locGroup":"club","displayName":"Кринж-сессия"},{"name":"Ворк-шоп “Архитектура убеждений”","sourceName":"Челлендж убеждений - Д.Рубинштейн (75-90м)","start":"16:00","end":"17:30","slots":3,"startRow":18,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"color":"FFE6B8AF","loc":"Лекторий","notionName":"Ворк-шоп “Архитектура убеждений”","host":"Даниил Рубинштейн","desc":"Не дискуссия. Не терапевтическая группа. Не лекция о когнитивных искажениях. Не упражнение в уязвимости. Не интеллектуальный салон. Не разоблачение чужих взглядов. Каждый участник работает со своим собственным убеждением, в маленькой группе, с одной задачей — увидеть, что именно это убеждение от него прячет.","min":"3","max":"21","locGroup":"lecture","displayName":"Воркшоп: архитектура убеждений"},{"name":"сонграйтинг","sourceName":"творческий мастер-класс по сонграйтингу (Петрушенкова)","start":"16:00","end":"17:30","slots":3,"startRow":18,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Петрушенкова","excelHost":"Петрушенкова","color":"FF93C47D","loc":"Рестик второй этаж","notionName":"сонграйтинг","desc":"Сонграйтинг: как написать песню с нуля (даже если вы никогда этого не делали)Разберем, что такое сонграйтинг и почему песни западают нам в душу. Обсудим простые приемы, которые помогут пройти путь от белого листа до текста собственной песни. Поговорим о форме, выборе темы, развитии сюжета, рифмах, хуках, повторениях и вариациях. Немного затронем музыкальную часть: как подобрать аккорды и придумать мелодию даже без глубоких знаний теории. А потом сделаем индивидуальные творческие упражнения и попробуем в группах собрать черновик песни. Цель — не написать хит за полтора часа (кто бы знал, как это сделать!), а включить креативную мышцу и понять: сонграйтинг — это в первую очередь навык, и его можно развивать.","displayName":"Сонграйтинг"},{"name":"Верёвочное единение","sourceName":"Верёвочное единение (Сонч)","start":"16:00","end":"17:30","slots":3,"startRow":18,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Сонч Видревич","excelHost":"Сонч Видревич","color":"FFFFD966","loc":"Большая поляна","notionName":"Верёвочное единение","desc":"Привет! Это групповой активный формат на сближение, включающий кемперов и веревки, движение и удовольствие. Побудем вместе, поделаем приятное, посмеемся вместе.","locGroup":"field","displayName":"Верёвочное единение"},{"name":"перерыв / портретное фото","sourceName":"перерыв / портретное фото","start":"17:30","end":"18:00","slots":1,"startRow":21,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true},{"name":"Чо, какой план?","sourceName":"Чо, какой план? (А Тихонов)","start":"18:00","end":"19:30","slots":3,"startRow":22,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Рома Тихонов","excelHost":"Рома Тихонов","color":"FF8E7CC3","loc":"Королевская","notionName":"Чо, какой план?","desc":"Круг про работу, профессиональную самоактуализацию, про то как не боятся принимать решения","locGroup":"royal","displayName":"Чо, какой план?"},{"name":"Ворк-шоп по теории заговоров // 1,5 часа","sourceName":"Теории заговоров: Артемий, Сонч,Яна(1,5 ч)","start":"18:00","end":"19:30","slots":3,"startRow":22,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Яна Макарова, Сонч Видревич, Артемий Устименко","excelHost":"Яна Макарова, Сонч Видревич, Артемий Устименко","color":"FFBE18BE","loc":"Лекторий","notionName":"Ворк-шоп по теории заговоров // 1,5 часа","desc":"Воркшоп по теориям заговоров: массово индуцируем друг друга бредовыми идеями. А что делать будем? В программе нашего воркшопа:- обучающая часть о том, как собрать свою собственную теорию заговора, чтобы все было как у приличных людей- практическая часть - собираем ту самую теорию заговоров, которой так не хватает миру- битва теорий заговоров - бои без правил, зато со всеми грязными трюками и ловкими техниками, которые вы только можете измыслить- гомеопати - скромный праздник радости и безумия на 20 минут А что по вайбам? Искрометное, бессмысленное и беспощадное событие (просто помогите на набор оргов)- гарантируем вам шапочку из фольги и гомеопатическую таблетку под язык. Самое темное время бывает перед просветом - самая беспросветная сессия на кемпе","locGroup":"lecture","min":"9","max":"30","displayName":"Воркшоп по теориям заговоров"},{"name":"Игра про отбор","sourceName":"ПроКемп: формат про отбор от коргов","start":"18:00","end":"19:30","slots":3,"startRow":22,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"color":"FFE6B8AF","loc":"Лекторий","notionName":"Игра про отбор","host":"Оля Силина, Андрей Бреслав","desc":"Игра про то, как устроен отбор и какие проблемы/сложности внутри этого есть","locGroup":"lecture","min":"5","max":"30","displayName":"Токсичный отбор"},{"name":"Покерный турнир","sourceName":"Покер в покерной (Ваня)","start":"18:00","end":"19:30","slots":3,"startRow":22,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Ваня","excelHost":"Ваня","notionName":"Покерный турнир","displayName":"Покерный турнир"},{"name":"УЖИН","sourceName":"УЖИН","start":"19:30","end":"21:00","slots":3,"startRow":25,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true,"color":"FF93C47D","loc":"Рестик второй этаж"},{"name":"Изба-рыдальня — шеринг про сложное в жизни","sourceName":"Овершеринг про сложное в жизни (Максим Бедер)","start":"21:00","end":"22:30","slots":3,"startRow":28,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Максим Бедер","excelHost":"Максим Бедер","color":"FF8E7CC3","loc":"Королевская","notionName":"Изба-рыдальня — шеринг про сложное в жизни","desc":"Разговор про сложное в жизни","locGroup":"royal","displayName":"Изба-рыдальня"},{"name":"Парфюмерный","sourceName":"Парфюмерный (Маша Пирсон)","start":"21:00","end":"22:30","slots":3,"startRow":28,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Маша Пирсон","excelHost":"Маша Пирсон","color":"FFBE18BE","loc":"Клуб","notionName":"Парфюмерный","desc":"Парфюмерная практика В нашей культуре запахи на периферии восприятия. Мы учимся смотреть, слушать и двигаться с детства, но ничего про различать оттенки запахов. При этом обоняние — один из самых прямых путей в тело и в момент, гедонистичная медитация для ленивых. Я люблю показывать духи тем, кто духи обычно не любит, и находить им истории, про которые они не знали, что духи делают: холодное северное море, деревенская конюшня, пыль туннеля метро, степные травы, заводской металл и машинное масло. Привезу всякого такого, но интересно и говорить с вами и расспрашивать, кто что в них чувствует, поэтому это не лекция, где я бубню и показываю односторонне, а скорее умеренно хаотичный семинар и диалог. Я Маша Пирсон, у меня библиотека в 1500 флаконов, и я 20 лет думаю и говорю с людьми про духи.","locGroup":"club","displayName":"Парфюмерный воркшоп"},{"name":"Дегустация вина","sourceName":"Дегустация вин (Карина Костина)","start":"21:00","end":"22:30","slots":3,"startRow":28,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Карина Костина","excelHost":"Карина Костина","color":"FFD9EAD3","loc":"Рестик первый этаж","notionName":"Дегустация вина","desc":"Дегустация “Чем ещё пахнет вино, кроме вина?”Спойлер: не только виноградом. Иногда яблоком, абрикосом, хлебом, чаем, вареньем, землёй и чем-то из разряда “я это точно где-то нюхал”.Будем пробовать яркие грузинские вина: петнат (пузырьки), белое, оранж, саперави и хванчкару. Без снобизма, без экзамена и без фраз “бархатистые танины на финише”.Сначала потренируем нос на ароматах, потом будем искать их в бокалах. Можно не разбираться в вине вообще. Даже лучше.6 вин, 60–90 минут, живое обсуждение и много неожиданных запахов.Приходите с носом, любопытством и готовностью сказать: “пахнет странно, но мне нравится”.","displayName":"Дегустация вина"},{"name":"Диванчик/дискуссия про способы хранения практического знания от Юры Пекова / 1 час","sourceName":"Диванчик формы хранения знания (Пеков)","start":"21:00","end":"22:30","slots":3,"startRow":28,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Юра Пеков","excelHost":"Юра Пеков","color":"FFE6B8AF","loc":"Лекторий","notionName":"Диванчик/дискуссия про способы хранения практического знания от Юры Пекова / 1 час","desc":"Википедия для прикладных знаний: почему её нет и как её сделать Как открыть карточку в Казахстане? Как найти нового стоматолога? Как правильно нанять SMM-менеджера? Где-то в ноосфере и чужих головах уже есть точные и выстраданные ответы, которые сэкономят много времени и денег. Но найти их нереально. Ветка на Reddit или вопрос в чате кемпа иногда помогают, но чаще идем набивать шишки сами.Парадокс в том, что у каждого такие ответы уже есть — по другим темам, где мы когда-то разобрались сами. Но никто не научился собирать их в цельный гайд, который переживет автора. Мы разберем, почему обмен прикладным опытом не работает, как это пробовали обойти, и (судьба любит смелых) вместе соберем свое решение","min":"3","max":"100","locGroup":"lecture","displayName":"Диванчик: как хранить практическое знание"},{"name":"музыкальный джем","sourceName":"творческий: музыкальный джем большой номер в главном здании (Серёжа Антопольский)","start":"22:30","end":"00:30","slots":4,"startRow":31,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Серёжа Антопольский","excelHost":"Серёжа Антопольский","color":"FF8E7CC3","loc":"Королевская","notionName":"музыкальный джем","desc":"Давайте соберемся вместе и поиздаем звуки! Иногда с помощью музыкальных инструментов (уметь играть на них не обязательно!). Развлечемся, переключимся, почувствуем совместность. Может быть в процессе получится что-нибудь красивое, но это не главное!","locGroup":"royal","min":"2","max":"25","displayName":"Музыкальный джем"},{"name":"вечеринка в бассейне","sourceName":"фестивальное: вечеринка в бассейне 70-е - 10-е","start":"22:30","end":"00:30","slots":4,"startRow":31,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"color":"FFC9DAF8","loc":"Бассейн","notionName":"вечеринка в бассейне","host":"Виктория Гинанова","desc":"музыка от 60 до 20-х, плаваем наслаждаемся","locGroup":"pool","min":"4","max":"50","displayName":"Вечеринка в бассейне"},{"name":"кадл 1","sourceName":"Кадл (Черненьков)","start":"22:30","end":"00:30","slots":4,"startRow":31,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Дима Черненьков","excelHost":"Дима Черненьков","color":"FFD9D9D9","loc":"Дуплекс 1: обнимательная","notionName":"кадл 1","displayName":"Кадл"},{"name":"Диванчик","sourceName":"Диванчик","start":"22:30","end":"23:30","slots":2,"startRow":31,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"color":"FFE6B8AF","loc":"Лекторий","locGroup":"lecture","displayName":"Диванчик"},{"name":"Диванчик","sourceName":"Диванчик","start":"23:30","end":"00:30","slots":2,"startRow":33,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"color":"FFE6B8AF","loc":"Лекторий","locGroup":"lecture","displayName":"Диванчик"},{"name":"ночные арбузники","sourceName":"ночные арбузники (Лиознов)","start":"00:30","end":"01:30","slots":2,"startRow":35,"trackCol":0,"colSpan":2,"wide":false,"isMeta":false,"host":"Антон Лиознов","excelHost":"Антон Лиознов","color":"FFFF9900","loc":"Вся база","notionName":"ночные арбузники","desc":"Ночные арбузники. Ночное ориентирование и еда.\"Ночные арбузники\" -- это ночное ориентирование на местности. Специально для вас мы поставим станции на базе и в окрестностях. А на каждой станции спрячем еду -- арбузы, яблоки, черешню...Приходите, объединяйтесь в мини-команды, получайте маршрутный лист, находите станции с фруктами и... ну вы поняли. Просто представьте -- ночь, фонарики, поиск станций по карте и сочная награда на каждой из них!Заинтересовались? Заполните \"форму про интерес\": не накладывает на вас обязательства, но даст нам лучше подготовиться https://docs.google.com/forms/d/e/1FAIpQLSeRLn1bz-h56d-QDBuLreV0HXipnpKwDrqB5kC1zs4jbvHtMw/viewform?usp=publish-editorдетали:- мероприятие пройдёт в ночь с пятницы на субботу, старт 1:00- ориентировочная продолжительность 1-1.5 часа- мероприятие не подразумевает соревновательности и физической нагрузки сверх хотьбы- необходим фонарик для ориентирования- необходима одежда, в которой вам комфортно ходить ночью и которую не боитесь испачкать случайным соком- по вопросам можно обращаться к Антону: t.me/Lavnton","min":"6","max":"25","displayName":"Ночные арбузники"},{"name":"Вечернее шоу в 00:00 (Яна)","sourceName":"Вечернее шоу в 00:00 (Яна)","start":"00:30","end":"01:00","slots":1,"startRow":35,"trackCol":2,"colSpan":2,"wide":false,"isMeta":false,"host":"Яна Макарова","excelHost":"Яна Макарова","displayName":"Вечернее шоу в 00:00"}],"label":"Пятница","date":"29 мая","startTime":"08:00","endTime":"01:30"},"saturday":{"events":[{"name":"зарядка (Горовой)","sourceName":"зарядка (Горовой)","start":"08:00","end":"09:00","slots":2,"startRow":2,"trackCol":0,"colSpan":2,"wide":false,"isMeta":false,"host":"Владимир Горовой","excelHost":"Владимир Горовой","color":"FFC9DAF8","loc":"Бассейн","locGroup":"pool"},{"name":"Утреннее шоу (Яна)","sourceName":"Утреннее шоу (Яна)","start":"08:00","end":"08:30","slots":1,"startRow":2,"trackCol":2,"colSpan":2,"wide":false,"isMeta":false,"host":"Яна Макарова","excelHost":"Яна Макарова","color":"FFC9DAF8","loc":"Бассейн","locGroup":"pool"},{"name":"Кофейный рейв","sourceName":"Кофейный рейв(Тупикин)","start":"09:30","end":"10:30","slots":2,"startRow":4,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Миша Тупикин","excelHost":"Миша Тупикин","color":"FFD9EAD3","loc":"Газон у рестика первый этаж","notionName":"Кофейный рейв","desc":"🔥🔥🔥 КОФЕЙНЫЙ РЕЙВ 🍓🍓🍓 Приходите танцевать и угарать НА КОФЕЙНЫЙ РЕЙВ. Пьем кофе, танцуем, живем лучшую жизнь.За вертушками — @TanyaDmi и @Misha_Tupikin СТРОГО GOOD VIBES ONLY ☝️☝️☝️","locGroup":"field","min":"2","max":"100","displayName":"Кофейный рейв"},{"name":"ЗАВТРАК","sourceName":"ЗАВТРАК","start":"09:00","end":"10:00","slots":2,"startRow":4,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true,"color":"FF93C47D","loc":"Рестик второй этаж","backgroundMeta":true},{"name":"Доклад “Токсикология и наркотики” // 30 минут","sourceName":"Токсикология: наркотики и я, доклад (Тихонов А)","start":"10:00","end":"10:30","slots":1,"startRow":6,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Рома Тихонов","excelHost":"Рома Тихонов","color":"FFE6B8AF","loc":"Лекторий","notionName":"Доклад “Токсикология и наркотики” // 30 минут","desc":"Доклад от Антона Тихонова про токсикологию и наркотики","locGroup":"lecture","min":"1","max":"100","displayName":"Доклад: токсикология и наркотики"},{"name":"Соц мед-я (Виденеева)","sourceName":"Соц мед-я (Виденеева)","start":"10:00","end":"10:30","slots":1,"startRow":6,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Настя Виденеева","excelHost":"Настя Виденеева","color":"FF8E7CC3","loc":"Королевская","locGroup":"royal","displayName":"Соцмедитация"},{"name":"Разговорчики с Даней и заготовка плова (Даня)","sourceName":"Разговорчики с Даней и заготовка плова (Даня)","start":"10:00","end":"12:00","slots":4,"startRow":6,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Даня Рубинштейн","excelHost":"Даня Рубинштейн","color":"FF93C47D","loc":"Рестик второй этаж","displayName":"Разговорчики и заготовка плова"},{"name":"рэп-баттл","sourceName":"рэп-баттл (Шерстенников и Артемий)","start":"10:30","end":"12:00","slots":3,"startRow":7,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Денис Шерстенников, Артемий Устименко","excelHost":"Денис Шерстенников, Артемий Устименко","color":"FFD9EAD3","loc":"Рестик первый этаж","notionName":"рэп-баттл","desc":"А и Д сидели на бите.Mic упал, а flow пропал, что осталось на бите?Кто хочет научиться ритмичто и идиоматично оскорблять оппонента или просто прикоснуться к определившей молодежную культуру 10-х эстетике рэп-баттла - ждем нас в нашей импровизированной словесной лаборатории.","min":"4","max":"15","displayName":"Рэп-баттл"},{"name":"Лаборатория дружбы от Леши Кулакова // 1,5 часа","sourceName":"Как формируется дружба, лаборатория (Кулаков)","start":"10:30","end":"12:00","slots":3,"startRow":7,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Алексей Кулаков","excelHost":"Алексей Кулаков","color":"FFE6B8AF","loc":"Лекторий","notionName":"Лаборатория дружбы от Леши Кулакова // 1,5 часа","desc":"Доклад на 30 минут + воркшоп про дружбу и то, как делать кемп таким, чтобы дружба в нем рождалась и удерживалась","min":"2","max":"25","locGroup":"lecture","displayName":"Лаборатория дружбы"},{"name":"Connective movement","sourceName":"Connective Movement (Кайданов)","start":"10:30","end":"12:00","slots":3,"startRow":7,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Никита Кайданов","excelHost":"Никита Кайданов","color":"FFBE18BE","loc":"Клуб","notionName":"Connective movement","desc":"Это групповая практика движения, направленная на то, чтобы дать телу побыть в среде, где можно двигаться так, как хочется именно сейчас, и обнаружить, что быть вместе с другими людьми в движении может быть легко, тепло и без давления. Тут не нужно уметь танцевать, не нужно касаться тех, кого не хочется касаться, и не нужно «раскрываться». Мы постепенно, через дыхание, взгляд и простые задания, настраиваемся друг на друга и на пространство — и из этой настройки рождается совместное движение.","locGroup":"club","min":"5","max":"20","displayName":"Connective Movement"},{"name":"Общее фото","sourceName":"Общее фото","start":"12:00","end":"12:30","slots":1,"startRow":10,"trackCol":0,"colSpan":4,"wide":true,"isMeta":false,"color":"FFFFD966","loc":"Большая поляна","locGroup":"field","displayName":"Общее фото"},{"name":"Портретные фото + кофебрейк","sourceName":"Портретные фото + кофебрейк","start":"12:30","end":"13:00","slots":1,"startRow":11,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true},{"name":"Воркшоп про мужественность","sourceName":"Ворк-шоп про мужественность (Черненьков)","start":"13:00","end":"14:30","slots":3,"startRow":12,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Дима Черненьков","excelHost":"Дима Черненьков","color":"FFBE18BE","loc":"Клуб","notionName":"Воркшоп про мужественность","desc":"Воркшоп про то, как современному мужчине втиснуть себя и свою эрекцию в сужающееся пространство женской эмансипации","locGroup":"club","displayName":"Воркшоп про мужественность"},{"name":"Игра + доклад от Вани Зюзина // 1,5 часа","sourceName":"Игра + доклад (Зюзин)","start":"13:00","end":"14:30","slots":3,"startRow":12,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Ваня Зюзин","excelHost":"Ваня Зюзин","color":"FFE6B8AF","loc":"Лекторий","notionName":"Игра + доклад от Вани Зюзина // 1,5 часа","desc":"Игра-лекция про доверие \"Почему мир скатывается в конфликты / роль СМИ / роль доверия в экономических играх\". Это может быть синтез всего, что я играл и рассказывал раньше про pricing game, теорию игр, аукционов и переговоров. Сыграем в простые пары и подумаем про разные стратегии, что будет, если сыграть МНОГО игр и добавлять или убирать игроков, и обсудим, причём здесь СМИ, доверие и ошибки.","locGroup":"lecture","min":"8","max":"100","displayName":"Игра-лекция про доверие"},{"name":"Матер-класс по парному танцевальному взаимодействию","sourceName":"Мастер-класс по парному танцевальному взаимодействию (Волк и Плеханова)","start":"13:00","end":"14:30","slots":3,"startRow":12,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Денис Волк, Лена Плеханова","excelHost":"Денис Волк, Лена Плеханова","notionName":"Матер-класс по парному танцевальному взаимодействию","displayName":"Мастер-класс по парному танцу"},{"name":"ПроКемп: world cafe- (Даша и Яна)","sourceName":"ПроКемп: world cafe- (Даша и Яна)","start":"13:00","end":"14:30","slots":3,"startRow":12,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Даша, Яна Макарова","excelHost":"Даша, Яна Макарова","color":"FF93C47D","loc":"Рестик второй этаж","displayName":"ПроКемп: World Café"},{"name":"ОБЕД","sourceName":"ОБЕД","start":"14:30","end":"16:00","slots":3,"startRow":15,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true,"color":"FF93C47D","loc":"Рестик второй этаж"},{"name":"Мастер-класс по флирту (Арамян и Высоковский)","sourceName":"Мастер-класс по флирту (Арамян и Высоковский)","start":"16:00","end":"17:30","slots":3,"startRow":18,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"host":"Саша Арамян, Миша Высоковский","excelHost":"Саша Арамян, Миша Высоковский","color":"FFE6B8AF","loc":"Лекторий","locGroup":"lecture","displayName":"Мастер-класс по флирту"},{"name":"творческий: repair cafe ресторан (верхний) (Сонч)","sourceName":"творческий: repair cafe ресторан (верхний) (Сонч)","start":"16:00","end":"17:30","slots":3,"startRow":18,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"host":"Сонч Видревич","excelHost":"Сонч Видревич","color":"FF93C47D","loc":"Рестик второй этаж","displayName":"Repair Café"},{"name":"Стройка дома","sourceName":"Стройка дома (Сонч и Лесин)","start":"16:00","end":"17:30","slots":3,"startRow":18,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Сонч Видревич, Валера Лесин","excelHost":"Сонч Видревич, Валера Лесин","color":"FFD9EAD3","loc":"Рестик первый этаж","notionName":"Стройка дома","displayName":"Стройка дома"},{"name":"Обет молчания","sourceName":"Обет молчания (Кайданов)","start":"16:00","end":"17:30","slots":3,"startRow":18,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Никита Кайданов","excelHost":"Никита Кайданов","color":"FFFFD966","loc":"Большая поляна","notionName":"Обет молчания","locGroup":"field","displayName":"Обет молчания"},{"name":"перерыв / портретное фото","sourceName":"перерыв / портретное фото","start":"17:30","end":"18:00","slots":1,"startRow":21,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true},{"name":"лайтнинг ток + купи кемпера","sourceName":"лайтнинг ток + купи кемпера","start":"18:00","end":"19:30","slots":3,"startRow":22,"trackCol":0,"colSpan":4,"wide":true,"isMeta":false,"color":"FFE6B8AF","loc":"Лекторий","locGroup":"lecture","displayName":"Лайтнинг-токи + «Купи кемпера»"},{"name":"УЖИН","sourceName":"УЖИН","start":"19:30","end":"21:00","slots":3,"startRow":25,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true,"color":"FF93C47D","loc":"Рестик второй этаж"},{"name":"Вечерний Огонёк","sourceName":"Вечерний Огонёк","start":"21:00","end":"22:00","slots":2,"startRow":28,"trackCol":0,"colSpan":2,"wide":false,"isMeta":false,"color":"FFBE18BE","loc":"Клуб","locGroup":"club","displayName":"Вечерний огонёк"},{"name":"Рефлексия “Мемлексия” // 1,5 часа","sourceName":"Рефлексируем жизнь через мемы (Соня, Рома Тихонов)","start":"21:00","end":"22:30","slots":3,"startRow":28,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Соня Видревич, Рома Тихонов","excelHost":"Соня Видревич, Рома Тихонов","color":"FFE6B8AF","loc":"Лекторий","notionName":"Рефлексия “Мемлексия” // 1,5 часа","desc":"Рефлексия «В поисках мема: осмысляем и планируем 2026 год» Это легкая и приятная рефлексия, где смешные картинки помогут выразить эмоции, осмыслить прошлое и спланировать будущее. Будут индивидуальные и групповые активности, в которых мы посмотрим на прошедшие 5 месяцев и наступающие 7 через призму мемов. Приходите, если хочется понять где вы, как вы и расставить приоритеты, ведь времени так мало, а дел так дофига.","min":"10","max":"30","locGroup":"lecture","displayName":"Мемлексия: рефлексия через мемы"},{"name":"Диванчик про отношения с родителями","sourceName":"Диванчики про родителей (Лера и Яна)","start":"21:00","end":"22:30","slots":3,"startRow":28,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"host":"Лера Бараева, Яна Макарова","excelHost":"Лера Бараева, Яна Макарова","color":"FFF4CCCC","notionName":"Диванчик про отношения с родителями","desc":"Диванчик про отношения с родителями: как менялись","min":"2","max":"15","displayName":"Диванчик про отношения с родителями"},{"name":"рейв вечеринка","sourceName":"Рейв Вечеринка","start":"22:30","end":"00:00","slots":3,"startRow":32,"trackCol":0,"colSpan":1,"wide":false,"isMeta":false,"color":"FFBE18BE","loc":"Клуб","notionName":"рейв вечеринка","host":"Таня Дмитриева","desc":"Всем йо! У микрофона DJ OtéraУверена, что вы соскучились по диким ночным тусовкам, поэтому приглашаю вас на наш скромный уютный рейв. Буду ставить вам то, что моя душа мне подскажет, отправлю вас через музыку и танцы в самые темные уголки души и самые светлые эмоциональные переживания ♥️💫День: 30 мая Время :Место : Жду вас у вертушекЛюблю и не забудьте надеть свои самые безумные наряды ❤️‍🔥","locGroup":"club","displayName":"Рейв-вечеринка"},{"name":"Караоке Алиса","sourceName":"Караоке Алиса","start":"22:30","end":"00:00","slots":3,"startRow":32,"trackCol":1,"colSpan":1,"wide":false,"isMeta":false,"color":"FFD9EAD3","loc":"Рестик первый этаж","displayName":"Караоке"},{"name":"Костерник суббота вечер","sourceName":"песни у костра Сережа и Денис","start":"22:30","end":"00:00","slots":3,"startRow":32,"trackCol":2,"colSpan":1,"wide":false,"isMeta":false,"host":"Серёжа Антопольский","excelHost":"Серёжа Антопольский","color":"FFFF9900","loc":"Костёр","notionName":"Костерник суббота вечер","desc":"Костёрник «прощание»У нас было три насыщенных дня, много опыта, мы наполнились песнями и готовы отжечь! Вайб боевиков - «устрой дестрой»! Музыка, в том числе та, о которой мы вас спрашивали, прозвучит под небом Грузии как никогда не звучала! (И костёрное угощение повторится!)","locGroup":"field","displayName":"Костёрник: вечер прощания"},{"name":"Диванчик","sourceName":"Диванчик","start":"23:00","end":"00:30","slots":3,"startRow":32,"trackCol":3,"colSpan":1,"wide":false,"isMeta":false,"color":"FFE6B8AF","loc":"Лекторий","locGroup":"lecture","displayName":"Диванчик"},{"name":"вечернее шоу 00:00","sourceName":"вечернее шоу 00:00","start":"00:00","end":"00:30","slots":1,"startRow":35,"trackCol":0,"colSpan":4,"wide":true,"isMeta":false,"displayName":"Вечернее шоу в 00:00"}],"label":"Суббота","date":"30 мая","startTime":"08:00","endTime":"00:30"},"sunday":{"events":[{"name":"ЗАВТРАК","sourceName":"ЗАВТРАК","start":"09:00","end":"10:00","slots":2,"startRow":4,"trackCol":0,"colSpan":4,"wide":true,"isMeta":true,"color":"FF93C47D","loc":"Рестик второй этаж"},{"name":"ЗАКРЫТИЕ","sourceName":"ЗАКРЫТИЕ","start":"10:00","end":"11:30","slots":3,"startRow":6,"trackCol":0,"colSpan":4,"wide":true,"isMeta":false,"color":"FFFFD966","loc":"Большая поляна","locGroup":"field","displayName":"Закрытие"},{"name":"чекаут","sourceName":"чекаут","start":"11:30","end":"12:30","slots":2,"startRow":9,"trackCol":0,"colSpan":4,"wide":true,"isMeta":false,"color":"FFCCCCCC","loc":"","locGroup":"other","displayName":"Чекаут"}],"label":"Воскресенье","date":"31 мая","startTime":"09:00","endTime":"12:30"}};
+
+const PARTICIPANTS = [
+  "Ваня Тихов",
+  "Яна Вигиль",
+  "Лиза Киселева",
+  "Максим Бедер",
+  "Даша Мельникова",
+  "Никита Соловьев",
+  "Илья Бойцов",
+  "Юра Пеков",
+  "Ярослав Русских",
+  "Таня Тихоновская",
+  "Лена Краевская",
+  "Саша Арамян",
+  "Сергей Антопольский",
+  "Даня Рубинштейн",
+  "Алексей Иорданский",
+  "Ваня Зюзин",
+  "Максим Мазин",
+  "Катя Ковтун",
+  "Оля Силина",
+  "Дима Калупин",
+  "Кирилл Воробьёв",
+  "Ира Уткина",
+  "Дмитрий Черненьков",
+  "Федя Рыбочкин",
+  "Аня Лукьяненко",
+  "Полина Кривых",
+  "Гриша Аркадьев",
+  "Рома Тихонов",
+  "Антон Тихонов",
+  "Лена Плеханова",
+  "Антон Лиознов",
+  "Анна Лиознова",
+  "Игорь Бедер",
+  "Настя Киличенко",
+  "Глеб Киличенко",
+  "Миша Тупикин",
+  "Маша Сергеева",
+  "Аня Петрова",
+  "Виктория Гинанова",
+  "Мария Пушкарская",
+  "Оля Развенская",
+  "Данила Рязановский",
+  "Маргарита Князюк",
+  "Саша Иглина",
+  "Лена Швец",
+  "Андрей Захаревич",
+  "Артемий Устименко",
+  "Оксана Коржавина",
+  "Таня Петрущенкова",
+  "Таня Дмитриева",
+  "Софья Ковалева",
+  "Соня Видревич",
+  "Сергей Савчук",
+  "Саша Шмыров",
+  "Саша Фонарев",
+  "Никита Кайданов",
+  "Настя Виденеева",
+  "Миша Высоковский",
+  "Мика Пятницкая",
+  "Маша Пирсон",
+  "Маша Боруха",
+  "Макс Ситов",
+  "Люся Корнилова",
+  "Леша Шипулин",
+  "Лера Бараева",
+  "Лена Волжина",
+  "Лара Симонова",
+  "Катя Мицкевич",
+  "Карина Костина",
+  "Дима Саввинов",
+  "Дима Крачун",
+  "Дима Беззубцев",
+  "Денис Шерстенников",
+  "Денис Волк",
+  "Даша Платонова",
+  "Гриша Бобров",
+  "Владимир Смирнов",
+  "Владимир Горовой",
+  "Вася Юренков",
+  "Валера Лесин",
+  "Арина Пушкина",
+  "Аня Юдина",
+  "Аня Симонова",
+  "Андрей Бреслав",
+  "Алиса Кузнецова",
+  "Алиса Афонина",
+  "Алексей Кулаков",
+  "Маня Марченкова"
+];
+
+
+// Вставь сюда URL Google Apps Script Web App, когда будем подключать сохранение в Google Sheets.
+// Пока URL пустой, выбор сохраняется только в браузере участника и его можно скопировать кнопкой.
+
+
+const expandedDescriptions = new Set();
+
+function evDescriptionPreview(ev) {
+  if (!ev || ev.isMeta) return '';
+  const raw = String(ev.desc || '').replace(/\s+/g, ' ').trim();
+  if (!raw) return '';
+  const id = ev.id || '';
+  const isLong = raw.length > 220;
+  const isOpen = id && expandedDescriptions.has(id);
+  const short = isLong && !isOpen ? raw.slice(0, 220).replace(/\s+\S*$/, '') + '…' : raw;
+  const cls = isLong && !isOpen ? 'ev-d more' : 'ev-d';
+  const toggle = isLong && id ? `<button class="ev-more" type="button" onclick="toggleDescription('${id}', event)">${isOpen ? 'Свернуть' : 'Читать полностью'}</button>` : '';
+  return `<div class="${cls}">${short}</div>${toggle}`;
+}
+
+function toggleDescription(id, event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  if (expandedDescriptions.has(id)) expandedDescriptions.delete(id);
+  else expandedDescriptions.add(id);
+  renderView();
+}
+
+const GOOGLE_SCRIPT_URL = '';
+
+const memoryStore = {};
+
+function safeGetItem(key, fallback = '') {
+  try {
+    const value = window.localStorage.getItem(key);
+    return value === null ? fallback : value;
+  } catch (e) {
+    return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : fallback;
+  }
+}
+
+function safeSetItem(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (e) {
+    memoryStore[key] = String(value);
+  }
+}
+
+let currentParticipant = safeGetItem('ampcamp_current_participant', '');
+let intentPanelCollapsed = safeGetItem('ampcamp_intent_panel_collapsed', '0') === '1';
+
+function updateIntentPanelToggle() {
+  const panel = document.getElementById('intentPanel');
+  const btn = document.getElementById('intentToggle');
+  if (!panel || !btn) return;
+  panel.classList.toggle('collapsed', intentPanelCollapsed);
+  const count = selectedIntentions ? selectedIntentions.size : 0;
+  btn.textContent = intentPanelCollapsed ? `Показать выбор${count ? ' · ' + count : ''}` : 'Скрыть выбор';
+  btn.setAttribute('aria-expanded', intentPanelCollapsed ? 'false' : 'true');
+}
+
+function toggleIntentPanel() {
+  intentPanelCollapsed = !intentPanelCollapsed;
+  safeSetItem('ampcamp_intent_panel_collapsed', intentPanelCollapsed ? '1' : '0');
+  updateIntentPanelToggle();
+}
+let selectedIntentions = new Set();
+let currentModalEventId = null;
+
+function slugify(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/[^a-zа-я0-9]+/gi, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 48) || 'event';
+}
+
+function makeEventId(dayKey, ev, idx) {
+  return `${dayKey}_${String(idx).padStart(2,'0')}_${ev.start || 'time'}_${slugify(ev.name)}`;
+}
+
+function storageKey(participant = currentParticipant) {
+  return 'ampcamp_intentions_v1_' + participant;
+}
+
+function buildEventIndex() {
+  const map = {};
+  for (const [dayKey, day] of Object.entries(DATA)) {
+    day.events.forEach((sourceEv, idx) => {
+      const ev = fix({...sourceEv});
+      if (ev.isMeta) return;
+      const id = makeEventId(dayKey, ev, idx);
+      map[id] = {
+        id,
+        day: day.label,
+        date: day.date,
+        name: ev.displayName || ev.name,
+        start: ev.start || '',
+        end: ev.end || '',
+        host: ev.host || '',
+        loc: ev.loc || '',
+        tags: ev.tags || []
+      };
+    });
+  }
+  return map;
+}
+
+function loadIntentionsForParticipant() {
+  selectedIntentions = new Set();
+  if (!currentParticipant) return;
+  try {
+    const saved = JSON.parse(safeGetItem(storageKey(), '[]'));
+    selectedIntentions = new Set(Array.isArray(saved) ? saved : []);
+  } catch (e) {
+    selectedIntentions = new Set();
+  }
+}
+
+function persistIntentions() {
+  if (!currentParticipant) return;
+  safeSetItem(storageKey(), JSON.stringify([...selectedIntentions]));
+  safeSetItem('ampcamp_current_participant', currentParticipant);
+}
+
+function initIntentions() {
+  const select = document.getElementById('participantSelect');
+  if (!select) return;
+  select.innerHTML = '<option value="">Выбери себя</option>' + PARTICIPANTS
+    .map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`)
+    .join('');
+  if (currentParticipant && PARTICIPANTS.includes(currentParticipant)) select.value = currentParticipant;
+  else currentParticipant = '';
+  loadIntentionsForParticipant();
+  updateIntentUI();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function setStatus(text, type='') {
+  const el = document.getElementById('intentStatus');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'intent-status ' + type;
+}
+
+function onParticipantChange() {
+  const select = document.getElementById('participantSelect');
+  currentParticipant = select.value;
+  if (currentParticipant) safeSetItem('ampcamp_current_participant', currentParticipant);
+  loadIntentionsForParticipant();
+  updateIntentUI();
+  renderView();
+  setStatus(currentParticipant ? `Выбран участник: ${currentParticipant}. Можно отмечать форматы.` : 'Сначала выбери участника.', currentParticipant ? 'ok' : 'warn');
+}
+
+function toggleIntent(eventId, event) {
+  if (event) event.stopPropagation();
+  if (!currentParticipant) {
+    setStatus('Сначала выбери себя в списке участников.', 'warn');
+    const select = document.getElementById('participantSelect');
+    if (select) select.focus();
+    return;
+  }
+  if (selectedIntentions.has(eventId)) selectedIntentions.delete(eventId);
+  else selectedIntentions.add(eventId);
+  persistIntentions();
+  updateIntentUI();
+  renderView();
+  setStatus('Выбор сохранён в этом браузере. Нажми “Сохранить выбор”, когда закончишь.', 'ok');
+}
+
+function updateIntentUI() {
+  const count = selectedIntentions.size;
+  const pill = document.getElementById('selectedPill');
+  if (pill) pill.textContent = `Выбрано: ${count}`;
+  updateIntentPanelToggle();
+  document.querySelectorAll('[data-intent-id]').forEach(el => {
+    const id = el.getAttribute('data-intent-id');
+    const isSelected = selectedIntentions.has(id);
+    el.classList.toggle('selected', isSelected);
+    const btn = el.querySelector('.intent-btn');
+    if (btn) {
+      btn.classList.toggle('selected', isSelected);
+      btn.textContent = isSelected ? '✓ Хочу пойти' : 'Хочу пойти';
+    }
+  });
+}
+
+function getSelectedEventsPayload() {
+  const eventIndex = buildEventIndex();
+  return [...selectedIntentions].map(id => eventIndex[id]).filter(Boolean);
+}
+
+async function saveIntentions() {
+  if (!currentParticipant) {
+    setStatus('Сначала выбери себя в списке участников.', 'warn');
+    return;
+  }
+  persistIntentions();
+  const payload = {
+    participant: currentParticipant,
+    selectedCount: selectedIntentions.size,
+    selectedEvents: getSelectedEventsPayload(),
+    savedAt: new Date().toISOString()
+  };
+  if (!GOOGLE_SCRIPT_URL) {
+    setStatus('Сохранено в браузере. Для общей таблицы нужно подключить Google Apps Script URL.', 'ok');
+    return;
+  }
+  try {
+    setStatus('Отправляю выбор…');
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    setStatus('Выбор отправлен. Можно менять и сохранять заново.', 'ok');
+  } catch (err) {
+    console.error(err);
+    setStatus('Не получилось отправить. Выбор сохранён локально, попробуй позже.', 'warn');
+  }
+}
+
+function copyIntentions() {
+  if (!currentParticipant) {
+    setStatus('Сначала выбери себя в списке участников.', 'warn');
+    return;
+  }
+  const events = getSelectedEventsPayload();
+  const lines = [
+    `Участник: ${currentParticipant}`,
+    `Выбрано форматов: ${events.length}`,
+    '',
+    ...events.map(e => `${e.day}, ${e.date}, ${e.start}${e.end ? '–' + e.end : ''} — ${e.name}${e.loc ? ' · ' + e.loc : ''}`)
+  ];
+  navigator.clipboard.writeText(lines.join('\n')).then(
+    () => setStatus('Выбор скопирован в буфер обмена.', 'ok'),
+    () => setStatus('Не получилось скопировать автоматически. Можно открыть консоль/повторить.', 'warn')
+  );
+}
+
+function clearIntentions() {
+  if (!currentParticipant) {
+    setStatus('Сначала выбери участника, чей выбор нужно сбросить.', 'warn');
+    return;
+  }
+  selectedIntentions = new Set();
+  persistIntentions();
+  updateIntentUI();
+  renderView();
+  setStatus(`Выбор для ${currentParticipant} сброшен в этом браузере.`, 'ok');
+}
+
+
+
+const MAIN_LOCATIONS = [
+  {key:'lecture', label:'Лекторий'},
+  {key:'club', label:'Клуб'},
+  {key:'royal', label:'Королевская'},
+  {key:'field', label:'Поляна'},
+  {key:'pool', label:'Бассейн'},
+];
+
+function locGroup(ev) {
+  if (ev.locGroup) return ev.locGroup;
+  const loc = String(ev.loc || '').toLowerCase().replace(/ё/g,'е');
+  if (loc.includes('лектор')) return 'lecture';
+  if (loc.includes('клуб')) return 'club';
+  if (loc.includes('executive') || loc.includes('королев')) return 'royal';
+  if (loc.includes('бассейн') || loc.includes('саун')) return 'pool';
+  if (loc.includes('поляна') || loc.includes('костер') || loc.includes('газон') || loc.includes('террас') || loc.includes('вертолет') || loc.includes('улич')) return 'field';
+  return '';
+}
+
+function displayLoc(loc) {
+  const text = String(loc || '');
+  return text.includes('Executive') ? 'Королевская' : text;
+}
+
+function updateLegend(show=true) {
+  const el = document.getElementById('locLegend');
+  if (!el) return;
+  el.classList.toggle('hidden', !show);
+  el.innerHTML = MAIN_LOCATIONS.map(l => `<span class="loc-chip"><span class="loc-dot ${l.key}"></span>${l.label}</span>`).join('') + `<button class="loc-chip clickable" type="button" onclick="switchView('locations')"><span class="loc-dot other"></span>Другие локации</button>`;
+}
+
+function isPhonePortrait() {
+  return window.matchMedia('(max-width: 700px) and (orientation: portrait)').matches;
+}
+
+const HOST_FIX = {
+  'А.Бреслав-разговор про психотерапию': {n:'Разговор про психотерапию',h:'А. Бреслав'},
+  'Доклад Юренков(Гравитационное уравнение) 45+15': {n:'Гравитационное уравнение торговли',h:'Юренков'},
+  'Доклад Карина Костина(45м - венчурные фонды) + 15 перерыв': {n:'Венчурные фонды',h:'Карина Костина'},
+  'Доклад Антон Тихонов': {n:'Токсикология: наркотики и я',h:'Антон Тихонов'},
+  'Доклад-1.5 ч': {n:'Как формируется дружба',h:'Лёша Кулаков'},
+  'Челлендж убеждений - Д.Рубинштейн': {n:'Челлендж убеждений',h:'Д. Рубинштейн'},
+  'Теории заговоров: Артемий, Сонч,Яна': {n:'Теории заговоров',h:'Артемий, Сонч, Яна'},
+  'Караоке Алиса': {n:'Караоке',h:'Алиса'},
+  'Рейв Вечеринка': {n:'Рейв-вечеринка',h:''},
+  'песни у костра Сережа и Денис': {n:'Песни у костра',h:'Серёжа и Денис'},
+  'Дегустация кофе (Ира Уткина, Таня Тихоновская)/урезать до часа': {n:'Дегустация кофе',h:'Ира Уткина, Таня Тихоновская'},
+  'творческий: repair cafe ресторан (верхний)': {n:'Repair Café',h:'Сонч'},
+  'творческий: музыкальный джем  большой номер в главном здании': {n:'Музыкальный джем',h:'Серёжа Антопольский'},
+  'фестивальное: вечеринка в бассейне 70-е - 10-е': {n:'Вечеринка в бассейне 70-е—10-е',h:''},
+  'творческий мастер-класс по сонграйтингу': {n:'МК по сонграйтингу',h:'Петрушенкова'},
+  'Мастер-класс по парному танцевальному взаимодейств': {n:'МК по парному танцу',h:'Волк и Плеханова'},
+  'Мастер-класс по парному танцевальному взаимодействию': {n:'МК по парному танцу',h:'Волк и Плеханова'},
+  'лайтнинг ток + купи кемпера': {n:'Лайтнинг-ток + Купи кемпера',h:''},
+  'Рефлексируем жизнь через мемы': {n:'Рефлексируем жизнь через мемы',h:'Соня, Рома Тихонов'},
+  'Прожектор (Лиза) и Суета сует': {n:'Прожектор + Суета сует',h:'Лиза, Лиознов'},
+  'Разговорчики с Даней и заготовка плова': {n:'Разговорчики + заготовка плова',h:'Даня'},
+  'Диванчики про родителей': {n:'Диванчики про родителей',h:'Лера и Яна'},
+  'Ворк-шоп про мужественность': {n:'Воркшоп про мужественность',h:'Черненьков'},
+  'ПроКемп: world cafe-': {n:'ПроКемп: World Café',h:'Даша и Яна'},
+  'ПроКемп: формат про отбор от коргов': {n:'ПроКемп: про отбор',h:'Корги'},
+  'Кемп шеринг': {n:'Кемп-шеринг',h:''},
+  'Соц мед-я': {n:'Соцмедитация',h:'Виденеева'},
+};
+
+const LOC_MAP = {
+  'ОТКРЫТИЕ':'Большая поляна','Прожектор':'Лекторий','костерник':'Костёр','Короткометражки':'Клуб',
+  'Миллиарды':'Диванчики у клуба','Мидраш':'Lobby отеля','Кемп шеринг':'Лекторий','Кемп-шеринг':'Лекторий',
+  'Прослушивание':'Клуб','Радиопьеса':'Executive Suite','Диванчик':'Lobby отеля',
+  'шуточная зарядка':'Поляна','Карточный':'Lobby отеля','Гравитационное':'Лекторий',
+  'Танцевальная':'Клуб','психотерапию':'Executive Suite','Check Your':'Лекторий',
+  'Ильф':'Терраса','Крав-мага':'Поляна','Дегустация кофе':'Газон у рестика',
+  'Флавий':'Лекторий','чтение по ролям':'Терраса','Венчурные':'Лекторий',
+  'Watsu':'Бассейн','Шляпа':'Рестик 1 этаж','Диалоги':'Executive Suite',
+  'фильмы':'Лекторий','Water dance':'Бассейн','Покер':'Покерная',
+  'продуктивности':'Лекторий','Кринж':'Executive Suite','Челлендж':'Лекторий',
+  'сонграйтинг':'Клуб','Верёвочное':'Поляна','Чо, какой план':'Терраса',
+  'Изба-рыдальня':'Терраса','Теории заговоров':'Лекторий','ПроКемп: про отбор':'Executive Suite',
+  'Овершеринг':'Лекторий','Парфюмерный':'Терраса','Дегустация вин':'Рестик 1 этаж',
+  'формы хранения':'Диванчики у клуба','вечеринка в бассейне':'Бассейн','Вечеринка в бассейне':'Бассейн',
+  'Кадл':'Дуплекс','Музыкальный джем':'Рестик 1 этаж','арбузники':'Газон',
+  'песенный импрув':'Клуб','Кофейный рейв':'Рестик 1 этаж','Токсикология':'Лекторий',
+  'Соцмедитация':'Терраса','Радикулитчика':'Поляна','рэп-баттл':'Клуб',
+  'формируется дружба':'Лекторий','Connective':'Терраса','Разговорчики':'Рестик 1 этаж',
+  'мужественность':'Executive Suite','Зюзин':'Поляна','парному танц':'Клуб',
+  'World Café':'Терраса','world cafe':'Терраса','флирту':'Executive Suite',
+  'Repair':'Рестик 2 этаж','Стройка':'Поляна','Обет молчания':'По территории',
+  'Лайтнинг':'Лекторий','Шеринг':'Лекторий','мемы':'Executive Suite',
+  'родителей':'Диванчики у клуба','Катарсис':'Поляна','КАТАРСИС':'Поляна',
+  'Рейв':'Клуб','Караоке':'Рестик 1 этаж','Песни у костра':'Костёр',
+  'Диванчики':'Диванчики у клуба','зарядка':'Поляна','сближение':'Executive Suite',
+  'чекаут':'Поляна','Вечернее шоу':'Клуб',
+};
+
+const TAG_MAP = {
+  'ОТКРЫТИЕ':['#церемония'],'Прожектор':['#сближение','#знакомство'],'костерник':['#костёр','#еда'],
+  'Короткометражки':['#кино'],'Миллиарды':['#диванчик'],'Мидраш':['#дискуссия','#ротация'],
+  'Кемп':['#шеринг'],'Прослушивание':['#музыка'],'Радиопьеса':['#импровизация'],
+  'Диванчик':['#диванчик'],'Вечернее шоу':['#шоу'],'зарядка':['#зарядка'],
+  'Карточный':['#сближение','#игра'],'Гравитационное':['#доклад','#экономика'],
+  'Танцевальная':['#танцы'],'психотерапию':['#разговор','#глубокое'],
+  'Check Your':['#игра','#провокация'],'Ильф':['#доклад','#литература'],
+  'Крав-мага':['#спорт'],'Дегустация кофе':['#дегустация'],
+  'Флавий':['#доклад','#история'],'чтение по ролям':['#творческое','#литература'],
+  'Венчурные':['#доклад','#бизнес'],'Watsu':['#телесное','#вода'],
+  'Шляпа':['#игра'],'Диалоги':['#сближение','#разговор'],
+  'фильмы':['#доклад','#кино'],'Water dance':['#телесное','#вода'],
+  'Покер':['#игра'],'продуктивности':['#доклад'],
+  'Кринж':['#сближение','#смешное'],'Челлендж':['#дискуссия','#мышление'],
+  'сонграйтинг':['#мастер-класс','#музыка'],'Верёвочное':['#командное','#телесное'],
+  'Чо, какой план':['#сближение','#рефлексия'],'Изба-рыдальня':['#сближение','#глубокое'],
+  'Теории заговоров':['#дискуссия','#безумие'],'ПроКемп':['#прокемп'],
+  'Овершеринг':['#шеринг','#глубокое'],'Парфюмерный':['#мастер-класс'],
+  'Дегустация вин':['#дегустация','#вино'],'формы хранения':['#диванчик','#дискуссия'],
+  'вечеринка в бассейне':['#вечеринка','#бассейн'],'Вечеринка в бассейне':['#вечеринка','#бассейн'],
+  'Кадл':['#телесное','#обнимашки'],'Музыкальный джем':['#музыка','#джем'],
+  'арбузники':['#еда','#ночное'],'Кофейный рейв':['#танцы','#кофе'],
+  'Токсикология':['#доклад','#наука'],'Соцмедитация':['#мастер-класс'],
+  'Радикулитчика':['#движение','#смешное'],'рэп-баттл':['#импровизация','#музыка'],
+  'формируется дружба':['#доклад','#психология'],'Connective':['#телесное','#танцы'],
+  'Разговорчики':['#готовка','#разговор'],'мужественность':['#разговор','#глубокое'],
+  'Зюзин':['#игра'],'парному танц':['#танцы','#мастер-класс'],
+  'World Café':['#прокемп','#дискуссия'],'world cafe':['#прокемп','#дискуссия'],
+  'флирту':['#мастер-класс','#сближение'],'Repair':['#творческое','#руками'],
+  'Стройка':['#руками','#командное'],'Обет молчания':['#медитация'],
+  'Лайтнинг':['#доклады','#общее'],'Шеринг':['#шеринг','#глубокое'],
+  'мемы':['#сближение','#мемы'],'родителей':['#диванчик','#родители'],
+  'Катарсис':['#церемония'],'КАТАРСИС':['#церемония'],'Рейв':['#вечеринка','#танцы'],
+  'Караоке':['#караоке','#музыка'],'Песни у костра':['#музыка','#костёр'],
+  'Диванчики':['#диванчик'],'сближение':['#сближение'],
+  'чекаут':['#шеринг','#прощание'],'песенный импрув':['#музыка','#импровизация'],
+};
+
+const DESC_MAP = {
+  'ОТКРЫТИЕ':'Церемония открытия кемпа. Короткая, яркая, ритуальная.',
+  'Прожектор':'Формат знакомства: участники рассказывают о себе коротко, ярко, лично.',
+  'костерник':'Живой огонь, жарим маршмеллоу и сосиски. Свободное общение.',
+  'Короткометражки':'Показ короткометражных фильмов.',
+  'Мидраш':'Дискуссии в малых группах. Несколько столов, несколько тем, ротация.',
+  'Кемп-шеринг':'Вечерний шеринг: как прошёл день, что запомнилось.',
+  'Радиопьеса':'Импровизированная радиопьеса. Сюрреализм приветствуется.',
+  'Карточный':'Формат на сближение через игровую механику.',
+  'Гравитационное':'Как гравитация объясняет мировую торговлю.',
+  'Танцевальная':'Импровизация через танец. Не нужно уметь танцевать.',
+  'психотерапию':'Открытый разговор о психотерапии: зачем, как, когда.',
+  'Check Your':'Большая игра-провокация: проверяем свои привилегии.',
+  'Крав-мага':'Основы системы самообороны. Практика в парах.',
+  'Дегустация кофе':'Пробуем разные сорта и способы приготовления.',
+  'чтение по ролям':'Читаем пьесу по ролям. Не нужно быть актёром.',
+  'Венчурные':'Как устроены венчурные фонды изнутри.',
+  'Watsu':'Водная терапия: расслабление в тёплой воде с поддержкой партнёра.',
+  'Шляпа':'Объясняем слова, показываем, говорим одним словом.',
+  'Диалоги':'Структурированный формат глубоких парных разговоров.',
+  'фильмы':'Закулисье российского кинопроизводства.',
+  'Water dance':'Подводный танец — партнёрская практика с погружениями.',
+  'Кринж':'Делимся кринжовыми моментами. Безопасное пространство.',
+  'Челлендж':'Бросаем вызов своим убеждениям.',
+  'сонграйтинг':'Учимся писать песни. От идеи до мелодии.',
+  'Верёвочное':'Командные упражнения с верёвками. Доверие и взаимодействие.',
+  'Изба-рыдальня':'Можно поплакать и поделиться тем, что болит.',
+  'Теории заговоров':'Разбираем безумные теории заговоров. Серьёзно и не очень.',
+  'Овершеринг':'Делимся самым сложным из жизни. Конфиденциальность, добровольность, без советов.',
+  'Парфюмерный':'Погружение в мир парфюмерии: ноты, композиции, истории запахов.',
+  'Дегустация вин':'Грузинские и не только вина. Учимся пить осознанно.',
+  'Вечеринка в бассейне':'Музыка по десятилетиям: от 70-х до 10-х.',
+  'Кадл':'Обнимательный формат с правилами консента и фасилитацией.',
+  'Музыкальный джем':'Живая музыка: приходи с инструментом или голосом.',
+  'арбузники':'Ночное поедание арбузов. Потому что почему нет.',
+  'Кофейный рейв':'Танцуем утром под кофе. Бодрящий ритуал пробуждения.',
+  'Токсикология':'Научный взгляд на вещества: фармакология, риски, культура.',
+  'рэп-баттл':'Импровизированные рэп-баттлы. Не нужен опыт — нужна наглость.',
+  'формируется дружба':'Как и почему мы выбираем друзей, что укрепляет связи.',
+  'Connective':'Движение в связке с другими. Телом чувствуем друг друга.',
+  'Разговорчики':'Готовим плов на весь кемп вместе.',
+  'мужественность':'Что значит быть мужчиной сегодня.',
+  'парному танц':'Учимся вести и следовать в парном танце.',
+  'World Café':'Дискуссия о будущем кемпа. Несколько столов, ротация.',
+  'world cafe':'Дискуссия о будущем кемпа. Несколько столов, ротация.',
+  'флирту':'Как проявлять интерес, читать сигналы, быть обаятельным.',
+  'Repair':'Приносите сломанные вещи — чиним вместе.',
+  'Стройка':'Строим что-то вместе руками.',
+  'Обет молчания':'Практика молчания: час без слов.',
+  'Лайтнинг':'Короткие 5-минутные доклады + представляем друг друга.',
+  'мемы':'Мемы как инструмент рефлексии. Смешно и глубоко.',
+  'родителей':'О родительстве: как воспитываем, чему учимся у детей.',
+  'Катарсис':'Кульминация кемпа. Высшая эмоциональная точка.',
+  'КАТАРСИС':'Кульминация кемпа. Высшая эмоциональная точка.',
+  'Рейв':'Главная вечеринка кемпа. Танцуем до утра.',
+  'Караоке':'Поём любимые песни. Фальшиво, громко, от души.',
+  'Песни у костра':'Гитара, огонь, голоса. Тихая альтернатива.',
+  'сближение':'Финальный формат на сближение — тёплое утро прощания.',
+  'чекаут':'Финальный чекаут: что увозим с собой.',
+  'Соцмедитация':'Медитация через социальное взаимодействие.',
+};
+
+
+const LOCATIONS = [
+  {id:'lektoriy',name:'Лекторий',group:'lecture',primary:true,desc:'Светлое вытянутое помещение с проектором и 3 флипчартами. Вмещает всех. Кофемашина в конце зала.'},
+  {id:'klub',name:'Клуб',group:'club',primary:true,desc:'Огромный, бетонные стены, ноль окон. Красные прожекторы, сцена, бар. Можно курить.'},
+  {id:'executive',name:'Королевская',group:'royal',primary:true,desc:'Уютная комната на 2 этаже. Гостиная на 15-20 чел., диван, ковёр. Ванная с реальной ванной.'},
+  {id:'polyana',name:'Поляна',group:'field',primary:true,desc:'Все основные outdoor-точки: большая поляна, костёр, газон, терраса и уличные зоны.'},
+  {id:'pool',name:'Бассейн',group:'pool',primary:true,desc:'Большая зона: басик треугольный неглубокий. 30-40 чел. Шезлонги, знаменитая жирафа с люстрой.'},
+  {id:'lobby',name:'Lobby отеля',desc:'Две зоны с диванчиками у ресепшна: вытянутая на 15-20 чел., квадратная на 10-15 чел.'},
+  {id:'divanchiki',name:'Диванчики у клуба',desc:'2-4 дивана, максимум 10 чел. Рядом с коридором, ведущим в клуб и лекторий.'},
+  {id:'rest1',name:'Рестик 1 этаж',desc:'Свой бар, своя сцена. Вмещает всех. Атмосфера настоящего ресторана.'},
+  {id:'gazon',name:'Газон у рестика',group:'field',desc:'Навес, беседка, рядом бассейн. Можно разместить всех по кругу.'},
+  {id:'rest2',name:'Рестик 2 этаж',desc:'Завтрачное место, шведский стол, огромный зал. Вмещает всех.'},
+  {id:'terrasa',name:'Гигантская терраса',group:'field',desc:'Огромная веранда под навесом на 2 этаже. Можно курить. Столики можно убрать.'},
+  {id:'game',name:'Игровой зал',desc:'Стол пинг-понга. Соседствует с малым бассейном через прозрачную стену.'},
+  {id:'koster',name:'Костёр и костерник',group:'field',desc:'Чилл-зона, живой огонь, сидячих мест ~10. Рядом можно организовать сеновал.'},
+  {id:'duplex1',name:'Дуплекс: обнимательная',desc:'Можно зарезервировать под обнимательный формат. Уютно, закрыто.'},
+  {id:'duplex2',name:'Дуплекс: массажная',desc:'Пространство для массажа и телесных практик.'},
+  {id:'duplex3',name:'Дуплекс: интровертошная',desc:'Тихое убежище для тех, кому нужна пауза.'},
+  {id:'sauna',name:'Сауна',group:'pool',desc:'Комфортно 10-15 человек за раз.'},
+  {id:'billiard',name:'Бильярдно-покерная',desc:'Бильярд и покерный стол.'},
+  {id:'vertolet',name:'Вертолётная площадка',group:'field',desc:'Бетонное покрытие на территории.'},
+];
+
+function findIn(map, name) {
+  for (const [k,v] of Object.entries(map)) {
+    if (name.toLowerCase().includes(k.toLowerCase())) return v;
+  }
+  return null;
+}
+
+function fix(ev) {
+  // Host fix
+  let f = HOST_FIX[ev.name];
+  if (!f) { for (const [k,v] of Object.entries(HOST_FIX)) { if (ev.name.startsWith(k)){f=v;break;} } }
+  if (f) { if(f.n) ev.name=f.n; if(f.h!==undefined && !ev.host) ev.host=f.h; }
+  // Extract (Host) from name
+  if (!ev.host) {
+    const m = ev.name.match(/\(([^)]+)\)\s*$/);
+    if (m) { ev.host = m[1]; ev.name = ev.name.slice(0, m.index).trim(); }
+  }
+  // Clean numeric hosts
+  if (ev.host && /^\d/.test(ev.host)) delete ev.host;
+  // Split "Доklad - X (Host-Topic)" patterns
+  if (ev.host && ev.host.includes('-') && !ev.host.includes(',')) {
+    const p = ev.host.split('-');
+    if (p.length >= 2) {
+      ev.host = p[0].trim();
+      if (ev.name === 'Доклад' || ev.name === 'Доклад - 30 м' || ev.name === 'Доклад -30м') {
+        ev.name = p.slice(1).join('-').trim();
+      }
+    }
+  }
+  if (ev.name === 'Доклад -30м' || ev.name === 'Доклад - 30 м') ev.name = 'Доклад';
+  // Loc, tags, desc
+  ev.loc = ev.loc || findIn(LOC_MAP, ev.name) || '';
+  ev.tags = ev.tags || findIn(TAG_MAP, ev.name) || [];
+  ev.desc = ev.desc || findIn(DESC_MAP, ev.name) || '';
+  // Meta label fix
+  if (ev.isMeta) {
+    const n = ev.name;
+    if (n.includes('ОБЕД') || n.includes('Обед') || n.includes('УЖИН') || n.includes('Ужин') || n.includes('ЗАВТРАК') || n.includes('Завтрак')) {
+      const dur = ev.slots * 30;
+      const durStr = dur >= 60 ? Math.floor(dur/60) + ' ч' + (dur%60 ? ' ' + dur%60 + ' мин' : '') : dur + ' мин';
+      // Simplify name
+      let short = n.includes('ОБЕД')||n.includes('Обед') ? 'Обед' : n.includes('УЖИН')||n.includes('Ужин') ? 'Ужин' : 'Завтрак';
+      if (n.includes('распределен')) short += ' с распределением';
+      ev.displayName = short + ' · ' + durStr;
+    }
+  }
+  return ev;
+}
+
+function ttm(t) { if(!t)return null; const [h,m]=t.split(':').map(Number); return h*60+m; }
+
+let activeView = 'thursday';
+
+function init() {
+  initIntentions();
+  updateIntentPanelToggle();
+  renderTabs();
+  renderView();
+  document.getElementById('mo').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+}
+
+function renderTabs() {
+  const items = [
+    ...Object.entries(DATA).map(([k,d])=>({key:k,label:d.label,date:d.date})),
+    {key:'all',label:'Все дни',date:''},
+    {key:'locations',label:'Локации',date:''},
+  ];
+  document.getElementById('tabs').innerHTML = items.map(i=>`
+    <button class="tab ${i.key===activeView?'active':''}" onclick="switchView('${i.key}')">
+      ${i.label}${i.date?`<span class="td">${i.date}</span>`:''}
+    </button>
+  `).join('');
+}
+
+function renderView() {
+  const cw = document.getElementById('calWrap');
+  const ad = document.getElementById('allDays');
+  const lp = document.getElementById('locPanel');
+  cw.style.display = 'none'; ad.style.display = 'none'; lp.classList.remove('show'); updateLegend(activeView !== 'locations');
+
+  if (activeView === 'all') {
+    ad.style.display = 'block';
+    renderAllDays();
+  } else if (activeView === 'locations') {
+    lp.classList.add('show');
+    renderLocations();
+  } else {
+    ad.className = 'all-days';
+    cw.style.display = 'block';
+    renderResponsiveDay(activeView);
+  }
+}
+
+function isMealName(n) {
+  return ['ОБЕД','Обед','УЖИН','Ужин','ЗАВТРАК','Завтрак'].some(k=>n.includes(k));
+}
+
+function isCompressible(ev) {
+  if (ev.backgroundMeta) return false;
+  if (!ev.isMeta) return false;
+  return isMealName(ev.name) || ev.name.includes('перерыв') || ev.name.includes('Перерыв');
+}
+
+function buildCompactMap(events, startMin, endMin) {
+  const mealSkip = new Set();
+  events.forEach((ev, idx) => {
+    if (!isCompressible(ev)) return;
+    let sm = ttm(ev.start);
+    let em = ev.end ? ttm(ev.end) : sm + ev.slots*30;
+    if (sm < startMin && sm < 12*60) sm += 24*60;
+    if (em <= sm) em += 24*60;
+    for (let t = sm + 30; t < em; t += 30) {
+      mealSkip.add(t);
+    }
+  });
+  // Build mapping: absolute slot index -> compact row
+  const map = {}; // absSlotMin -> {row, isMeal}
+  let compactRow = 1;
+  for (let t = startMin; t < endMin; t += 30) {
+    if (mealSkip.has(t)) continue; // skip this slot entirely
+    map[t] = compactRow;
+    compactRow++;
+  }
+  return { map, totalRows: compactRow - 1 };
+}
+
+
+function renderResponsiveDay(dayKey) {
+  renderAgenda(dayKey);
+}
+
+function escapeEv(ev) {
+  return JSON.stringify(ev).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function renderAgenda(dayKey) {
+  const day = DATA[dayKey];
+  const grid = document.getElementById('calGrid');
+  grid.className = 'cal-grid agenda-grid';
+  grid.style.gridTemplateColumns = '';
+  grid.style.gridTemplateRows = '';
+  const events = day.events.map((sourceEv, idx) => ({ ev: fix({...sourceEv}), idx }));
+  const startMin = ttm(day.startTime);
+  let endMin = ttm(day.endTime);
+  if (endMin <= startMin) endMin += 24*60;
+  const byTime = new Map();
+  events.forEach(({ev, idx}) => {
+    let sm = ttm(ev.start);
+    let em = ev.end ? ttm(ev.end) : sm + ev.slots*30;
+    if (sm < startMin && sm < 12*60) sm += 24*60;
+    if (em <= sm) em += 24*60;
+    if (em <= startMin || sm >= endMin) return;
+    const key = Math.max(sm, startMin);
+    if (!byTime.has(key)) byTime.set(key, []);
+    byTime.get(key).push({ev, idx});
+  });
+  let html = '';
+  [...byTime.keys()].sort((a,b)=>a-b).forEach(t => {
+    const mins = t % (24*60);
+    const ts = `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;
+    const cards = byTime.get(t).map(({ev, idx}) => {
+      const evId = makeEventId(dayKey, ev, idx);
+      ev.id = evId;
+      ev.dayKey = dayKey;
+      const isSelected = selectedIntentions.has(evId);
+      const lg = locGroup(ev);
+      const cls = [ev.isMeta ? 'meta' : '', ev.backgroundMeta ? 'meta-bg' : '', isSelected ? 'selected' : '', lg ? 'loc-'+lg : ''].filter(Boolean).join(' ');
+      const sub = [];
+      if (ev.host) sub.push(ev.host);
+      if (ev.loc && !ev.isMeta) sub.push(displayLoc(ev.loc));
+      const subH = sub.length ? `<div class="ev-s">${sub.join(' · ')}</div>` : '';
+      const descH = evDescriptionPreview(ev);
+      const evJ = escapeEv(ev);
+      const intentBtn = !ev.isMeta ? `<button class="intent-btn ${isSelected?'selected':''}" onclick="toggleIntent('${evId}', event)">${isSelected?'✓ Хочу пойти':'Хочу пойти'}</button>` : '';
+      return `<div class="ev ${cls}" ${!ev.isMeta?`data-intent-id="${evId}"`:''} ${!ev.isMeta?`onclick="openModal(this)" data-ev="${evJ}"`:''}><div class="ev-n">${ev.displayName || ev.name}</div>${subH}${descH}${intentBtn}</div>`;
+    }).join('');
+    html += `<div class="agenda-slot"><div class="agenda-time">${ts}</div><div class="agenda-events">${cards}</div></div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function renderGrid(dayKey) {
+  const day = DATA[dayKey];
+  const events = day.events.map(e => fix({...e}));
+  const startMin = ttm(day.startTime);
+  let endMin = ttm(day.endTime);
+  if (endMin <= startMin) endMin += 24*60;
+
+  const maxCol = Math.max(...events.filter(e=>!e.wide).map(e=>(e.trackCol || 0) + (e.colSpan || 1)), 1);
+  const numCols = Math.max(maxCol, 1);
+  const { map: rowMap, totalRows } = buildCompactMap(events, startMin, endMin);
+  const grid = document.getElementById('calGrid');
+  grid.className = 'cal-grid';
+  grid.style.gridTemplateColumns = `var(--time-w) repeat(${numCols}, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${totalRows}, var(--row-h))`;
+  let html = '';
+
+  // Time labels + grid lines for non-skipped slots
+  for (let t = startMin; t < endMin; t += 30) {
+    if (!rowMap[t]) continue;
+    const mins = t % (24*60);
+    const h = Math.floor(mins/60); const m = mins%60;
+    const ts = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    const isHr = m===0;
+    const r = rowMap[t];
+    html += `<div class="cal-time ${isHr?'hr':'hf'}" style="grid-row:${r};grid-column:1">${ts}</div>`;
+    for (let c=0;c<numCols;c++) html += `<div class="cal-ln ${isHr?'hr':'hf'}" style="grid-row:${r};grid-column:${c+2}"></div>`;
+  }
+
+  // Events
+  events.forEach((ev, idx) => {
+    let sm = ttm(ev.start);
+    let em = ev.end ? ttm(ev.end) : sm + ev.slots*30;
+    if (sm < startMin && sm < 12*60) sm += 24*60;
+    if (em <= sm) em += 24*60;
+    if (em <= startMin) return;
+    if (sm < startMin) sm = startMin;
+    if (em > endMin) em = endMin;
+    if (sm >= endMin) return;
+
+    const meal = isCompressible(ev);
+
+    // Find compact row for start
+    let rowStart = rowMap[sm];
+    if (!rowStart) {
+      // Find nearest mapped slot
+      for (let t = sm; t >= startMin; t -= 30) { if (rowMap[t]) { rowStart = rowMap[t]; break; } }
+    }
+    if (!rowStart) return;
+
+    let rowSpan;
+    if (meal) {
+      rowSpan = ev.backgroundMeta ? Math.max(1, (rowMap[em] || rowMap[em - 30] || rowStart + 1) - rowStart) : 1; // compressed to 1 row
+    } else {
+      // Find compact row for end
+      let rowEnd = rowMap[em] || rowMap[em - 30];
+      if (!rowEnd) {
+        // Find nearest mapped slot before em
+        for (let t = em; t >= sm; t -= 30) { if (rowMap[t]) { rowEnd = rowMap[t]; break; } }
+      }
+      rowSpan = Math.max(1, (rowEnd || rowStart) - rowStart);
+      // If event ends exactly at a mapped slot, the span should include up to but not the end row
+      // Actually: rowEnd is the row of the END time slot, we want span = rowEnd - rowStart
+      // But if end lands on a meal-skip, use the row after the meal
+      if (rowMap[em]) {
+        rowSpan = rowMap[em] - rowStart;
+      } else {
+        // end is inside a skipped meal zone, find next mapped slot
+        for (let t = em; t < endMin; t += 30) {
+          if (rowMap[t]) { rowSpan = rowMap[t] - rowStart; break; }
+        }
+      }
+      rowSpan = Math.max(1, rowSpan);
+      if (em >= endMin) rowSpan = Math.max(rowSpan, totalRows + 1 - rowStart);
+    }
+
+    let colStart, colSpan;
+    if (ev.wide) { colStart=2; colSpan=numCols; }
+    else { colStart=(ev.trackCol || 0)+2; colSpan=Math.max(1, Math.min(ev.colSpan || 1, numCols - (ev.trackCol || 0))); }
+
+    const evId = makeEventId(dayKey, ev, idx);
+    ev.id = evId;
+    ev.dayKey = dayKey;
+    const isSelected = selectedIntentions.has(evId);
+    const lg = locGroup(ev); const cls = [ev.isMeta ? 'meta' : '', ev.backgroundMeta ? 'meta-bg' : '', isSelected ? 'selected' : '', lg ? 'loc-'+lg : '', rowSpan <= 2 ? 'compact' : '', rowSpan === 1 && !ev.isMeta ? 'micro-intent' : ''].filter(Boolean).join(' ');
+    const nm = ev.displayName || ev.name;
+    const sub = [];
+    if (ev.host) sub.push(ev.host);
+    if (ev.loc && !ev.isMeta) sub.push(displayLoc(ev.loc));
+    const subH = sub.length ? `<div class="ev-s">${sub.join(' · ')}</div>` : '';
+    const tagsH = ev.tags&&ev.tags.length&&!ev.isMeta ? `<div class="ev-t">${ev.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : '';
+    const descH = evDescriptionPreview(ev);
+    const evJ = JSON.stringify(ev).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+    const intentLabel = rowSpan === 1 ? 'Хочу' : 'Хочу пойти';
+    const intentBtn = !ev.isMeta ? `<button class="intent-btn ${isSelected?'selected':''}" onclick="toggleIntent('${evId}', event)">${isSelected?'✓ ' + intentLabel:intentLabel}</button>` : '';
+    html += `<div class="ev ${cls}" ${!ev.isMeta?`data-intent-id="${evId}"`:''} style="grid-row:${rowStart}/span ${rowSpan};grid-column:${colStart}/span ${colSpan}"
+      ${!ev.isMeta?`onclick="openModal(this)" data-ev="${evJ}"`:''}>${
+      `<div class="ev-n">${nm}</div>${subH}${descH}${tagsH}${intentBtn}`
+    }</div>`;
+  });
+
+  grid.innerHTML = html;
+}
+
+function renderAllDays() {
+  const ad = document.getElementById('allDays');
+  ad.className = 'all-days horizontal';
+  ad.style.display = 'flex';
+  let html = '';
+  for (const [dayKey, day] of Object.entries(DATA)) {
+    html += `<div class="all-day-section">
+      <div class="all-day-title">${day.label}<span>${day.date}</span></div>
+      <div id="allGrid_${dayKey}" class="cal-wrap" style="padding:0;margin-top:8px">
+        <div class="cal-grid" id="allG_${dayKey}"></div>
+      </div>
+    </div>`;
+  }
+  ad.innerHTML = html;
+  for (const dayKey of Object.keys(DATA)) {
+    renderGridInto(dayKey, document.getElementById('allG_'+dayKey));
+  }
+}
+
+function renderGridInto(dayKey, grid) {
+  grid.className = 'cal-grid';
+  const day = DATA[dayKey];
+  const events = day.events.map(e => fix({...e}));
+  const startMin = ttm(day.startTime);
+  let endMin = ttm(day.endTime);
+  if (endMin <= startMin) endMin += 24*60;
+  const maxCol = Math.max(...events.filter(e=>!e.wide).map(e=>(e.trackCol || 0) + (e.colSpan || 1)), 1);
+  const numCols = Math.max(maxCol, 1);
+  const { map: rowMap, totalRows } = buildCompactMap(events, startMin, endMin);
+  grid.style.gridTemplateColumns = `var(--time-w) repeat(${numCols}, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${totalRows}, var(--row-h))`;
+  let html = '';
+  for (let t = startMin; t < endMin; t += 30) {
+    if (!rowMap[t]) continue;
+    const mins = t % (24*60);
+    const h = Math.floor(mins/60); const m = mins%60;
+    const ts = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    const isHr = m===0;
+    const r = rowMap[t];
+    html += `<div class="cal-time ${isHr?'hr':'hf'}" style="grid-row:${r};grid-column:1">${ts}</div>`;
+    for (let c=0;c<numCols;c++) html += `<div class="cal-ln ${isHr?'hr':'hf'}" style="grid-row:${r};grid-column:${c+2}"></div>`;
+  }
+  events.forEach((ev, idx) => {
+    let sm = ttm(ev.start);
+    let em = ev.end ? ttm(ev.end) : sm + ev.slots*30;
+    if (sm < startMin && sm < 12*60) sm += 24*60;
+    if (em <= sm) em += 24*60;
+    if (em <= startMin) return;
+    if (sm < startMin) sm = startMin;
+    if (em > endMin) em = endMin;
+    if (sm >= endMin) return;
+    const meal = isCompressible(ev);
+    let rowStart = rowMap[sm];
+    if (!rowStart) { for (let t=sm;t>=startMin;t-=30){if(rowMap[t]){rowStart=rowMap[t];break;}} }
+    if (!rowStart) return;
+    let rowSpan;
+    if (meal) { rowSpan = ev.backgroundMeta ? Math.max(1, (rowMap[em] || rowMap[em - 30] || rowStart + 1) - rowStart) : 1; }
+    else {
+      rowSpan = 1;
+      if (rowMap[em]) { rowSpan = rowMap[em] - rowStart; }
+      else { for (let t=em;t<endMin;t+=30){if(rowMap[t]){rowSpan=rowMap[t]-rowStart;break;}} }
+      rowSpan = Math.max(1, rowSpan);
+      if (em >= endMin) rowSpan = Math.max(rowSpan, totalRows + 1 - rowStart);
+    }
+    let colStart, colSpan;
+    if (ev.wide) { colStart=2; colSpan=numCols; } else { colStart=ev.trackCol+2; colSpan=Math.max(1, Math.min(ev.colSpan || 1, numCols - (ev.trackCol || 0))); }
+    const evId = makeEventId(dayKey, ev, idx);
+    ev.id = evId;
+    ev.dayKey = dayKey;
+    const isSelected = selectedIntentions.has(evId);
+    const lg = locGroup(ev); const cls = [ev.isMeta ? 'meta' : '', ev.backgroundMeta ? 'meta-bg' : '', isSelected ? 'selected' : '', lg ? 'loc-'+lg : '', rowSpan <= 2 ? 'compact' : '', rowSpan === 1 && !ev.isMeta ? 'micro-intent' : ''].filter(Boolean).join(' ');
+    const nm = ev.displayName || ev.name;
+    const sub = [];
+    if (ev.host) sub.push(ev.host);
+    if (ev.loc && !ev.isMeta) sub.push(displayLoc(ev.loc));
+    const subH = sub.length ? `<div class="ev-s">${sub.join(' · ')}</div>` : '';
+    const tagsH = ev.tags&&ev.tags.length&&!ev.isMeta ? `<div class="ev-t">${ev.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : '';
+    const descH = evDescriptionPreview(ev);
+    const evJ = JSON.stringify(ev).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    const intentLabel = rowSpan === 1 ? 'Хочу' : 'Хочу пойти';
+    const intentBtn = !ev.isMeta ? `<button class="intent-btn ${isSelected?'selected':''}" onclick="toggleIntent('${evId}', event)">${isSelected?'✓ ' + intentLabel:intentLabel}</button>` : '';
+    html += `<div class="ev ${cls}" ${!ev.isMeta?`data-intent-id="${evId}"`:''} style="grid-row:${rowStart}/span ${rowSpan};grid-column:${colStart}/span ${colSpan}"
+      ${!ev.isMeta?`onclick="openModal(this)" data-ev="${evJ}"`:''}>${
+      `<div class="ev-n">${nm}</div>${subH}${descH}${tagsH}${intentBtn}`
+    }</div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function renderLocations() {
+  const lp = document.getElementById('locPanel');
+  lp.innerHTML = `<div class="loc-grid">${LOCATIONS.map(l => `
+    <div class="loc-card ${l.primary?'primary-loc':''}" style="${l.group?'--loc-color:var(--loc-'+l.group+',#ddd);--loc-tint:rgba(0,0,0,.025)':''}" id="loc_${l.id}" onclick="toggleLoc('${l.id}')">
+      <h3>${l.name}</h3>
+      <div class="loc-detail">
+        <p>${l.desc}</p>
+        <div class="photos">
+          <div class="photo-placeholder">фото 1</div>
+          <div class="photo-placeholder">фото 2</div>
+          <div class="photo-placeholder">фото 3</div>
+        </div>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+function toggleLoc(id) {
+  const el = document.getElementById('loc_'+id);
+  el.classList.toggle('open');
+}
+
+function switchView(v) {
+  activeView = v;
+  renderTabs();
+  renderView();
+  window.scrollTo({top:document.getElementById('tabs').offsetTop-10,behavior:'smooth'});
+}
+
+function openModal(el) {
+  const ev = JSON.parse(el.dataset.ev);
+  currentModalEventId = ev.id || null;
+  let startForDur = ttm(ev.start); let endForDur = ev.end ? ttm(ev.end) : startForDur + ev.slots*30; if (endForDur <= startForDur) endForDur += 24*60; const dur = Math.max(30, endForDur - startForDur);
+  const ds = dur>=60?Math.floor(dur/60)+' ч'+(dur%60?' '+dur%60+' мин':''):dur+' мин';
+  const th = ev.tags&&ev.tags.length?`<div class="modal-tags">${ev.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:'';
+  document.getElementById('modal').innerHTML = `
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    ${th}
+    <h2>${ev.displayName || ev.name}</h2>
+    <div class="modal-g">
+      <div class="modal-i"><div class="l">Время</div><div class="v">${ev.start}${ev.end?'–'+ev.end:''}</div></div>
+      <div class="modal-i"><div class="l">Длительность</div><div class="v">${ds}</div></div>
+      <div class="modal-i"><div class="l">Локация</div><div class="v">${displayLoc(ev.loc)||'—'}</div></div>
+      <div class="modal-i"><div class="l">Участники</div><div class="v">${ev.min&&ev.max?ev.min+'–'+ev.max+' чел.':'—'}</div></div>
+      ${ev.host?`<div class="modal-i f"><div class="l">Ведущий</div><div class="v">${ev.host}</div></div>`:''}
+    </div>
+    <div class="modal-d ${ev.desc?'':'empty'}">${ev.desc||'Анонс скоро появится'}</div>
+    <div class="modal-intent">
+      <span>${currentParticipant ? 'Твой предварительный выбор для этого формата.' : 'Чтобы отметить формат, сначала выбери себя вверху страницы.'}</span>
+      <button class="${selectedIntentions.has(ev.id)?'off':''}" onclick="toggleIntent(currentModalEventId, event); closeModal();">${selectedIntentions.has(ev.id)?'Убрать из выбора':'Хочу пойти'}</button>
+    </div>
+  `;
+  document.getElementById('mo').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal() {
+  currentModalEventId = null;
+  document.getElementById('mo').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+
+function formatAgendaTime(absMinutes) {
+  const mins = absMinutes % (24 * 60);
+  return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+}
+
+function renderLargeAgendaEvent(dayKey, ev, idx, isSplitHalf, visibleStart) {
+  const evId = makeEventId(dayKey, ev, idx);
+  ev.id = evId;
+  ev.dayKey = dayKey;
+  const isSelected = selectedIntentions.has(evId);
+  const lg = locGroup(ev);
+  const cls = [
+    ev.isMeta ? 'meta' : '',
+    ev.backgroundMeta ? 'meta-bg' : '',
+    isSelected ? 'selected' : '',
+    lg ? 'loc-' + lg : '',
+    expandedDescriptions.has(evId) ? 'expanded' : ''
+  ].filter(Boolean).join(' ');
+  const sub = [];
+  if (ev.host) sub.push(ev.host);
+  if (ev.loc && !ev.isMeta) sub.push(displayLoc(ev.loc));
+  const halfTime = isSplitHalf ? `<div class="ev-half-time">${formatAgendaTime(visibleStart)}</div>` : '';
+  const subH = sub.length ? `<div class="ev-s">${sub.join(' · ')}</div>` : '';
+  const descH = evDescriptionPreview(ev);
+  const tagsH = ev.tags && ev.tags.length && !ev.isMeta ? `<div class="ev-t">${ev.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : '';
+  const evJ = escapeEv(ev);
+  const intentBtn = !ev.isMeta ? `<button class="intent-btn ${isSelected ? 'selected' : ''}" onclick="toggleIntent('${evId}', event)">${isSelected ? '✓ Хочу пойти' : 'Хочу пойти'}</button>` : '';
+  return `<div class="ev ${cls}" ${!ev.isMeta ? `data-intent-id="${evId}" onclick="openModal(this)" data-ev="${evJ}"` : ''}>
+    ${halfTime}<div class="ev-n">${ev.displayName || ev.name}</div>${subH}${descH}${tagsH}${intentBtn}
+  </div>`;
+}
+
+function renderAgenda(dayKey) {
+  const day = DATA[dayKey];
+  const grid = document.getElementById('calGrid');
+  grid.className = 'cal-grid agenda-grid';
+  grid.style.gridTemplateColumns = '';
+  grid.style.gridTemplateRows = '';
+  const events = day.events.map((sourceEv, idx) => ({ ev: fix({...sourceEv}), idx }));
+  const startMin = ttm(day.startTime);
+  let endMin = ttm(day.endTime);
+  if (endMin <= startMin) endMin += 24 * 60;
+  const byHour = new Map();
+
+  events.forEach(({ev, idx}) => {
+    let sm = ttm(ev.start);
+    let em = ev.end ? ttm(ev.end) : sm + ev.slots * 30;
+    if (sm < startMin && sm < 12 * 60) sm += 24 * 60;
+    if (em <= sm) em += 24 * 60;
+    if (em <= startMin || sm >= endMin) return;
+    const visibleStart = Math.max(sm, startMin);
+    const hourKey = Math.floor(visibleStart / 60) * 60;
+    if (!byHour.has(hourKey)) byHour.set(hourKey, []);
+    byHour.get(hourKey).push({ev, idx, visibleStart});
+  });
+
+  grid.innerHTML = [...byHour.keys()].sort((a,b)=>a-b).map(hour => {
+    const list = byHour.get(hour).sort((a,b) =>
+      (a.ev.trackCol || 0) - (b.ev.trackCol || 0) || a.visibleStart - b.visibleStart
+    );
+    const hasHourStart = list.some(item => item.visibleStart % 60 === 0);
+    const labelTime = hasHourStart ? hour : list[0].visibleStart;
+    const byCol = new Map();
+    list.forEach(item => {
+      const key = item.ev.wide ? `wide-${item.idx}` : String(item.ev.trackCol || 0);
+      if (!byCol.has(key)) byCol.set(key, []);
+      byCol.get(key).push(item);
+    });
+    const colHtml = [...byCol.entries()].map(([key, colItems]) => {
+      const sorted = colItems.sort((a,b) => a.visibleStart - b.visibleStart);
+      const isSplitHalf = sorted.length > 1 && sorted.every(item => {
+        const sm = ttm(item.ev.start);
+        const em = item.ev.end ? ttm(item.ev.end) : sm + item.ev.slots * 30;
+        const duration = (em <= sm ? em + 24 * 60 : em) - sm;
+        return duration <= 30;
+      });
+      return `<div class="agenda-col ${isSplitHalf ? 'split-half' : ''}">
+        ${sorted.map(({ev, idx, visibleStart}) => renderLargeAgendaEvent(dayKey, ev, idx, isSplitHalf, visibleStart)).join('')}
+      </div>`;
+    }).join('');
+    return `<div class="agenda-slot"><div class="agenda-time">${formatAgendaTime(labelTime)}</div><div class="agenda-events hour-layout">${colHtml}</div></div>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>
