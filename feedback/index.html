@@ -1052,8 +1052,8 @@ function setFeedbackComment(id, value) {
 function feedbackControlsHtml(id) {
   const a = currentFeedback(id);
   const options = [1,2,3,4,5,6,7].map(n=>({value:String(n), label:String(n)}));
-  const buttons = options.map(o => '<button type="button" class="feedback-rate '+(String(a.rating)===String(o.value)?'active':'')+'" data-feedback-event="'+id+'" data-feedback-value="'+o.value+'" data-feedback-label="'+o.label+'">'+o.label+'</button>').join('');
-  return '<div class="feedback-box"><div class="feedback-title">Оценка</div><div class="feedback-note">1 — совсем не зашло, 7 — один из лучших опытов кемпа.</div><div class="feedback-scale">'+buttons+'</div><textarea class="feedback-comment" placeholder="Комментарий, если хочется" oninput="setFeedbackComment(\''+id+'\', this.value)">'+escapeHtml(a.comment||'')+'</textarea></div>';
+  const buttons = options.map(o => '<button type="button" class="feedback-rate '+(String(a.rating)===String(o.value)?'active':'')+'" data-feedback-event="'+id+'" data-feedback-value="'+o.value+'" data-feedback-label="'+o.label+'" onclick="event.stopPropagation(); setFeedbackRating(\''+id+'\', \''+o.value+'\', \''+o.label+'\')">'+o.label+'</button>').join('');
+  return '<div class="feedback-box" onclick="event.stopPropagation()"><div class="feedback-title">Оценка</div><div class="feedback-note">1 — совсем не зашло, 7 — один из лучших опытов кемпа.</div><div class="feedback-scale">'+buttons+'</div><textarea class="feedback-comment" placeholder="Комментарий, если хочется" onclick="event.stopPropagation()" oninput="setFeedbackComment(\''+id+'\', this.value)">'+escapeHtml(a.comment||'')+'</textarea></div>';
 }
 function refreshFeedbackControls(id) {
   const box = document.querySelector('.feedback-box');
