@@ -313,9 +313,9 @@ body.has-floating-save { padding-bottom:76px; }
   <div class="intent-card">
     <div>
       <div class="intent-kicker">Обратная связь</div>
-      <div class="intent-title">Отметь форматы, на которых был(а)</div>
-      <div class="intent-note">Отметь, где ты был(а), поставь оценку и при желании оставь комментарий. Это поможет понять, какие форматы особенно сработали.</div>
-      <div class="intent-pill" id="selectedPill">Отмечено: 0</div>
+      <div class="intent-title">Оцени форматы, на которых был(а)</div>
+      <div class="intent-note">Твоя обратная связь очень важна для нас и ведущих форматов! Оценки и комментарии помогут понять, что получилось, а что нет, что можно улучшить. Выбери себя, поставь оценки и напиши комментарии, в конце нажми «отправить отзыв».</div>
+      <div class="intent-pill" id="selectedPill">Оценок: 0</div>
     </div>
     <div class="intent-controls">
       <select class="intent-select" id="participantSelect" onchange="onParticipantChange()">
@@ -338,7 +338,7 @@ body.has-floating-save { padding-bottom:76px; }
 <div class="loc-panel" id="locPanel"></div>
 
 <div class="floating-save" id="floatingSave" aria-live="polite">
-  <span>Отмечено: <b id="floatingSaveCount">0</b></span>
+  <span>Оценок: <b id="floatingSaveCount">0</b></span>
   <button type="button" onclick="saveIntentions()">Отправить отзыв</button>
 </div>
 
@@ -598,7 +598,7 @@ function onParticipantChange() {
   loadIntentionsForParticipant();
   updateIntentUI();
   renderView();
-  setStatus(currentParticipant ? `Выбран участник: ${currentParticipant}. Можно отмечать форматы.` : 'Сначала выбери участника.', currentParticipant ? 'ok' : 'warn');
+  setStatus(currentParticipant ? `Выбран участник: ${currentParticipant}. Можно оценивать форматы.` : 'Сначала выбери участника.', currentParticipant ? 'ok' : 'warn');
 }
 
 function toggleIntent(eventId, event) {
@@ -615,7 +615,7 @@ function toggleIntent(eventId, event) {
   persistIntentions();
   updateIntentUI();
   renderView();
-  setStatus('Выбор сохранён в этом браузере. Нажми “Отправить отзыв”, когда закончишь.', 'ok');
+  setStatus('Оценка сохранена в этом браузере. Нажми “Отправить отзыв”, когда закончишь.', 'ok');
 }
 
 function openFeedbackForEvent(eventId, event) {
@@ -635,7 +635,7 @@ function openFeedbackForEvent(eventId, event) {
     persistIntentions();
   }
   updateIntentUI();
-  setStatus('Отмечено. Теперь поставь оценку и при желании добавь комментарий.', 'ok');
+  setStatus('Теперь поставь оценку и при желании добавь комментарий.', 'ok');
   if (isPhonePortrait()) {
     expandedFeedbackEventId = expandedFeedbackEventId === eventId ? null : eventId;
     renderView();
@@ -650,7 +650,7 @@ function openFeedbackForEvent(eventId, event) {
 function updateIntentUI() {
   const count = selectedIntentions.size;
   const pill = document.getElementById('selectedPill');
-  if (pill) pill.textContent = `Отмечено: ${count}`;
+  if (pill) pill.textContent = `Оценок: ${count}`;
   const floating = document.getElementById('floatingSave');
   const floatingCount = document.getElementById('floatingSaveCount');
   if (floatingCount) floatingCount.textContent = count;
@@ -735,7 +735,7 @@ function copyIntentions() {
   const events = getSelectedEventsPayload();
   const lines = [
     `Участник: ${currentParticipant}`,
-    `Выбрано форматов: ${events.length}`,
+    `Оценено форматов: ${events.length}`,
     '',
     ...events.map(e => `${e.day}, ${e.date}, ${e.start}${e.end ? '–' + e.end : ''} — ${e.name}${e.loc ? ' · ' + e.loc : ''}`)
   ];
