@@ -117,6 +117,10 @@ body { font-family:'Manrope',sans-serif; background:var(--bg); color:var(--text)
 .floating-save span { color:var(--text-dim); font-size:12px; font-weight:700; white-space:nowrap; }
 .floating-save b { color:var(--accent); }
 .floating-save button { border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:999px; padding:8px 12px; font-family:'Manrope',sans-serif; font-size:12px; font-weight:800; cursor:pointer; }
+.floating-save button:disabled { opacity:.62; cursor:wait; }
+.floating-status { max-width:240px; color:var(--text-dim); font-size:11px; font-weight:700; line-height:1.25; }
+.floating-status.ok { color:#2f7d50; }
+.floating-status.warn { color:var(--accent); }
 body.has-floating-save { padding-bottom:76px; }
 @media(max-width:760px) {
   .intent-card { grid-template-columns:1fr; gap:12px; }
@@ -124,7 +128,8 @@ body.has-floating-save { padding-bottom:76px; }
   .intent-actions { justify-content:flex-start; }
   .intent-status { text-align:left; }
   .intent-action.compact-copy { max-width:100%; }
-  .floating-save { left:12px; right:12px; bottom:max(12px, env(safe-area-inset-bottom)); justify-content:space-between; border-radius:16px; }
+  .floating-save { left:12px; right:12px; bottom:max(12px, env(safe-area-inset-bottom)); justify-content:space-between; border-radius:16px; flex-wrap:wrap; }
+  .floating-status { flex:1 1 100%; max-width:none; order:3; }
   .floating-save button { padding:10px 12px; }
 }
 
@@ -324,7 +329,7 @@ body.has-floating-save { padding-bottom:76px; }
       <button class="intent-action" onclick="clearIntentions()">Сбросить</button>
       <div class="intent-actions">
         <button class="intent-action compact-copy" onclick="copyIntentions()" title="Скопировать отзыв в буфер обмена"><span class="copy-icon" aria-hidden="true"></span><span>Скопировать себе</span></button>
-        <button class="intent-action primary" onclick="saveIntentions()">Отправить отзыв</button>
+        <button class="intent-action primary" data-save-feedback onclick="saveIntentions()">Отправить отзыв</button>
       </div>
       <div class="intent-status" id="intentStatus">Сначала выбери себя, потом отмечай форматы и оценивай их в карточках.</div>
     </div>
@@ -339,7 +344,8 @@ body.has-floating-save { padding-bottom:76px; }
 
 <div class="floating-save" id="floatingSave" aria-live="polite">
   <span>Оценок: <b id="floatingSaveCount">0</b></span>
-  <button type="button" onclick="saveIntentions()">Отправить отзыв</button>
+  <button type="button" data-save-feedback onclick="saveIntentions()">Отправить отзыв</button>
+  <div class="floating-status" id="floatingStatus"></div>
 </div>
 
 <div class="modal-ov" id="mo">
@@ -472,7 +478,7 @@ function updateIntentPanelToggle() {
   const btn = document.getElementById('intentToggle');
   if (!panel || !btn) return;
   panel.classList.toggle('collapsed', intentPanelCollapsed);
-  const count = selectedIntentions ? selectedIntentions.size : 0;
+  const count = selectedIntentions ? feedbackCount() : 0;
   btn.textContent = intentPanelCollapsed ? `Показать панель выбора${count ? ' · ' + count : ''}` : 'Скрыть панель выбора';
   btn.setAttribute('aria-expanded', intentPanelCollapsed ? 'false' : 'true');
 }
@@ -485,6 +491,8 @@ function toggleIntentPanel() {
 let selectedIntentions = new Set();
 let currentModalEventId = null;
 let expandedFeedbackEventId = null;
+let isSavingFeedback = false;
+let feedbackAnswers = {};
 
 function slugify(s) {
   return String(s || '')
@@ -502,6 +510,10 @@ function makeEventId(dayKey, ev, idx) {
 
 function storageKey(participant = currentParticipant) {
   return 'ampcamp_intentions_v1_' + participant;
+}
+
+function feedbackStorageKey(participant = currentParticipant) {
+  return 'ampcamp_feedback_7_' + participant;
 }
 
 function buildEventIndex() {
@@ -549,6 +561,17 @@ function loadIntentionsForParticipant() {
   }
 }
 
+function loadFeedbackForParticipant() {
+  feedbackAnswers = {};
+  if (!currentParticipant) return;
+  try {
+    const saved = safeGetItem(feedbackStorageKey(), safeGetItem('ampcamp_feedback_7', '{}'));
+    feedbackAnswers = JSON.parse(saved || '{}') || {};
+  } catch (e) {
+    feedbackAnswers = {};
+  }
+}
+
 function persistIntentions() {
   if (!currentParticipant) return;
   safeSetItem(storageKey(), JSON.stringify([...selectedIntentions]));
@@ -576,6 +599,7 @@ function initIntentions() {
   if (currentParticipant && PARTICIPANTS.includes(currentParticipant)) select.value = currentParticipant;
   else currentParticipant = '';
   loadIntentionsForParticipant();
+  loadFeedbackForParticipant();
   updateIntentUI();
 }
 
@@ -585,9 +609,23 @@ function escapeHtml(s) {
 
 function setStatus(text, type='') {
   const el = document.getElementById('intentStatus');
-  if (!el) return;
-  el.textContent = text;
-  el.className = 'intent-status ' + type;
+  if (el) {
+    el.textContent = text;
+    el.className = 'intent-status ' + type;
+  }
+  const floating = document.getElementById('floatingStatus');
+  if (floating) {
+    floating.textContent = text || '';
+    floating.className = 'floating-status ' + type;
+  }
+}
+
+function setSavingState(isSaving) {
+  isSavingFeedback = isSaving;
+  document.querySelectorAll('[data-save-feedback]').forEach(btn => {
+    btn.disabled = isSaving;
+    btn.textContent = isSaving ? 'Отправляю…' : 'Отправить отзыв';
+  });
 }
 
 function onParticipantChange() {
@@ -596,6 +634,7 @@ function onParticipantChange() {
   if (currentParticipant) safeSetItem('ampcamp_current_participant', currentParticipant);
   expandedFeedbackEventId = null;
   loadIntentionsForParticipant();
+  loadFeedbackForParticipant();
   updateIntentUI();
   renderView();
   setStatus(currentParticipant ? `Выбран участник: ${currentParticipant}. Можно оценивать форматы.` : 'Сначала выбери участника.', currentParticipant ? 'ok' : 'warn');
@@ -610,12 +649,16 @@ function toggleIntent(eventId, event) {
     if (select) select.focus();
     return;
   }
-  if (selectedIntentions.has(eventId)) selectedIntentions.delete(eventId);
-  else selectedIntentions.add(eventId);
+  if (selectedIntentions.has(eventId)) {
+    clearFeedbackForEvent(eventId);
+  } else {
+    selectedIntentions.add(eventId);
+  }
   persistIntentions();
   updateIntentUI();
   renderView();
-  setStatus('Оценка сохранена в этом браузере. Нажми “Отправить отзыв”, когда закончишь.', 'ok');
+  if (currentModalEventId === eventId) closeModal();
+  setStatus(selectedIntentions.has(eventId) ? 'Теперь поставь оценку и при желании добавь комментарий.' : 'Оценка для формата убрана.', selectedIntentions.has(eventId) ? 'ok' : 'warn');
 }
 
 function openFeedbackForEvent(eventId, event) {
@@ -648,7 +691,7 @@ function openFeedbackForEvent(eventId, event) {
 }
 
 function updateIntentUI() {
-  const count = selectedIntentions.size;
+  const count = feedbackCount();
   const pill = document.getElementById('selectedPill');
   if (pill) pill.textContent = `Оценок: ${count}`;
   const floating = document.getElementById('floatingSave');
@@ -661,12 +704,13 @@ function updateIntentUI() {
   document.querySelectorAll('[data-intent-id]').forEach(el => {
     const id = el.getAttribute('data-intent-id');
     const isSelected = selectedIntentions.has(id);
-    el.classList.toggle('selected', isSelected);
+    const hasFeedback = hasFeedbackForEvent(id);
+    el.classList.toggle('selected', hasFeedback || expandedFeedbackEventId === id);
     const btn = el.querySelector('.intent-btn');
     if (btn) {
-      btn.classList.toggle('selected', isSelected);
+      btn.classList.toggle('selected', hasFeedback);
       const label = el.classList.contains('micro-intent') ? 'Оценить' : 'Оценить формат';
-      btn.textContent = isSelected ? (feedbackAnswers[id]?.ratingLabel ? '✓ ' + feedbackAnswers[id].ratingLabel : '✓ Оценено') : label;
+      btn.textContent = hasFeedback ? (feedbackAnswers[id]?.ratingLabel ? '✓ ' + feedbackAnswers[id].ratingLabel : '✓ Комментарий') : label;
     }
   });
 }
@@ -685,16 +729,21 @@ function getFeedbackEventsPayload() {
       ratingLabel: answer.ratingLabel || '',
       comment: answer.comment || '',
     };
-  });
+  }).filter(ev => ev.rating || String(ev.comment || '').trim());
 }
 
 async function saveIntentions() {
+  if (isSavingFeedback) return;
   if (!currentParticipant) {
     setStatus('Сначала выбери себя в списке участников.', 'warn');
     return;
   }
   persistIntentions();
   const selectedEvents = getFeedbackEventsPayload();
+  if (!selectedEvents.length) {
+    setStatus('Поставь хотя бы одну оценку или оставь комментарий, потом отправь отзыв.', 'warn');
+    return;
+  }
   const payload = {
     participant_id: slugify(currentParticipant),
     participant_name: currentParticipant,
@@ -713,6 +762,7 @@ async function saveIntentions() {
     return;
   }
   try {
+    setSavingState(true);
     setStatus('Отправляю отзывы…');
     const res = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -724,6 +774,8 @@ async function saveIntentions() {
   } catch (err) {
     console.error(err);
     setStatus('Не получилось отправить. Отзывы сохранены локально, попробуй позже.', 'warn');
+  } finally {
+    setSavingState(false);
   }
 }
 
@@ -751,8 +803,10 @@ function clearIntentions() {
     return;
   }
   selectedIntentions = new Set();
+  Object.keys(feedbackAnswers).forEach(id => delete feedbackAnswers[id]);
   expandedFeedbackEventId = null;
   persistIntentions();
+  saveFeedbackState();
   updateIntentUI();
   renderView();
   setStatus(`Выбор для ${currentParticipant} сброшен в этом браузере.`, 'ok');
@@ -1032,13 +1086,43 @@ function fix(ev) {
 function ttm(t) { if(!t)return null; const [h,m]=t.split(':').map(Number); return h*60+m; }
 
 
-const feedbackAnswers = JSON.parse(safeGetItem('ampcamp_feedback_7', '{}') || '{}');
 function currentFeedback(id) { return feedbackAnswers[id] || {}; }
-function saveFeedbackState() { safeSetItem('ampcamp_feedback_7', JSON.stringify(feedbackAnswers)); }
+function saveFeedbackState() {
+  if (!currentParticipant) return;
+  safeSetItem(feedbackStorageKey(), JSON.stringify(feedbackAnswers));
+}
+function hasFeedbackForEvent(id) {
+  const answer = currentFeedback(id);
+  return Boolean(answer.rating || String(answer.comment || '').trim());
+}
+function feedbackCount() {
+  return [...selectedIntentions].filter(id => hasFeedbackForEvent(id)).length;
+}
+function clearFeedbackForEvent(id) {
+  delete feedbackAnswers[id];
+  selectedIntentions.delete(id);
+  if (expandedFeedbackEventId === id) expandedFeedbackEventId = null;
+  saveFeedbackState();
+}
 function setFeedbackRating(id, value, label) {
   if (!id) return;
-  if (!selectedIntentions.has(id)) { selectedIntentions.add(id); persistIntentions(); }
-  feedbackAnswers[id] = {...currentFeedback(id), rating:String(value), ratingLabel:label || String(value)};
+  const current = currentFeedback(id);
+  const sameRating = String(current.rating || '') === String(value);
+  if (sameRating) {
+    const next = {...current};
+    delete next.rating;
+    delete next.ratingLabel;
+    if (String(next.comment || '').trim()) {
+      feedbackAnswers[id] = next;
+      selectedIntentions.add(id);
+    } else {
+      clearFeedbackForEvent(id);
+    }
+  } else {
+    selectedIntentions.add(id);
+    feedbackAnswers[id] = {...current, rating:String(value), ratingLabel:label || String(value)};
+  }
+  persistIntentions();
   saveFeedbackState();
   updateIntentUI();
   if (currentModalEventId === id) refreshFeedbackControls(id);
@@ -1046,14 +1130,22 @@ function setFeedbackRating(id, value, label) {
 }
 function setFeedbackComment(id, value) {
   if (!id) return;
-  feedbackAnswers[id] = {...currentFeedback(id), comment:value};
+  const next = {...currentFeedback(id), comment:value};
+  if (String(value || '').trim() || next.rating) {
+    selectedIntentions.add(id);
+    feedbackAnswers[id] = next;
+  } else {
+    clearFeedbackForEvent(id);
+  }
+  persistIntentions();
   saveFeedbackState();
+  updateIntentUI();
 }
 function feedbackControlsHtml(id) {
   const a = currentFeedback(id);
   const options = [1,2,3,4,5,6,7].map(n=>({value:String(n), label:String(n)}));
   const buttons = options.map(o => '<button type="button" class="feedback-rate '+(String(a.rating)===String(o.value)?'active':'')+'" data-feedback-event="'+id+'" data-feedback-value="'+o.value+'" data-feedback-label="'+o.label+'" onclick="event.stopPropagation(); setFeedbackRating(\''+id+'\', \''+o.value+'\', \''+o.label+'\')">'+o.label+'</button>').join('');
-  return '<div class="feedback-box" onclick="event.stopPropagation()"><div class="feedback-title">Оценка</div><div class="feedback-note">1 — совсем не зашло, 7 — один из лучших опытов кемпа.</div><div class="feedback-scale">'+buttons+'</div><textarea class="feedback-comment" placeholder="Комментарий, если хочется" onclick="event.stopPropagation()" oninput="setFeedbackComment(\''+id+'\', this.value)">'+escapeHtml(a.comment||'')+'</textarea></div>';
+  return '<div class="feedback-box" onclick="event.stopPropagation()"><div class="feedback-title">Оценка</div><div class="feedback-note">1 — совсем не зашло, 7 — очень-очень зашло.</div><div class="feedback-scale">'+buttons+'</div><textarea class="feedback-comment" placeholder="Комментарий, если хочется" onclick="event.stopPropagation()" oninput="setFeedbackComment(\''+id+'\', this.value)">'+escapeHtml(a.comment||'')+'</textarea></div>';
 }
 function refreshFeedbackControls(id) {
   const box = document.querySelector('.feedback-box');
@@ -1062,12 +1154,6 @@ function refreshFeedbackControls(id) {
   wrap.innerHTML = feedbackControlsHtml(id);
   box.replaceWith(wrap.firstChild);
 }
-document.addEventListener('click', e => {
-  const btn = e.target.closest('[data-feedback-value]');
-  if (!btn) return;
-  setFeedbackRating(btn.dataset.feedbackEvent || currentModalEventId, btn.dataset.feedbackValue, btn.dataset.feedbackLabel);
-});
-
 let activeView = 'thursday';
 
 function init() {
